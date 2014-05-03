@@ -53,7 +53,8 @@ webGLApp.prototype.initGameKeyboard = function() {
         {
             this.gameKeyPressed[event.keyCode] = true;
             //console.log("keyboard event: key pressed " + event.keyCode);
-        }.bind(this)
+        }.bind(this),
+        true
     );
 
     window.addEventListener("keyup",
@@ -61,7 +62,8 @@ webGLApp.prototype.initGameKeyboard = function() {
         {
             this.gameKeyPressed[event.keyCode] = false;
             //console.log("keyboard event: key pressed " + event.keyCode);
-        }.bind(this)
+        }.bind(this),
+        true
     );
     
     window.addEventListener("focusout",
@@ -135,6 +137,13 @@ webGLApp.prototype.initBuffers = function() {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
     this.triangleVertexColorBuffer.itemSize = 4;
     this.triangleVertexColorBuffer.numItems = 3;
+    
+    var textureCoordinates = [
+        0.0,  0.0,
+        1.0,  0.0,
+        1.0,  1.0,
+        0.0,  1.0,
+    ]
 }
 
 webGLApp.prototype.initShaders = function() {
