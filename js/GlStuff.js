@@ -351,6 +351,10 @@ webGLApp.prototype.drawScene = function()
     
     this.gl.useProgram(this.textureShaderProgram);
     
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
+    this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
+    
     this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
     this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
 
