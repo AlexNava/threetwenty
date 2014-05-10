@@ -166,10 +166,10 @@ webGLApp.prototype.initBuffers = function()
     this.quadCoordsBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordsBuffer);
     var quadCoords = [
-        0.0,  0.0,
-        0.0,  1.0,
-        1.0,  0.0,
-        1.0,  1.0
+        0.0,     0.0,
+        0.0,   200.0,
+        320.0,   0.0,
+        320.0, 200.0
     ];
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
     this.quadCoordsBuffer.itemSize = 2;
@@ -302,7 +302,7 @@ webGLApp.prototype.checkResize = function(canvas, projMatrix)
         
         canvas.width = lastSizeW;
         canvas.height = lastSizeH;
-        this.gl.viewport(0, 0, 320, 200);
+//        this.gl.viewport(0, 0, 320, 200);
 //        mat4.identity(projMatrix);
 //        mat4.perspective(projMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
     }
@@ -317,7 +317,8 @@ webGLApp.prototype.drawScene = function()
 
     // draw object on custom FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer);
-
+    this.gl.viewport(0, 0, 320, 200);
+    
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -343,6 +344,8 @@ webGLApp.prototype.drawScene = function()
     
     // draw textured quad from FBO to screen
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    this.gl.viewport(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    
     // Setup orthographic matrices
     var identityMv = mat4.create();
     var orthoMatrix = mat4.create();
