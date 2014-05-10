@@ -265,13 +265,13 @@ webGLApp.prototype.initOffscreenBuffer = function()
     // FBO
     this.rttFramebuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer);
-    this.rttFramebuffer.width = 320;
-    this.rttFramebuffer.height = 200;
+    this.rttFramebuffer.width = 512;
+    this.rttFramebuffer.height = 256;
     
     // Texture for color
     this.rttTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.LINEAR);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
     // No mipmap (npot)
     //this.gl.generateMipmap(this.gl.TEXTURE_2D);
@@ -342,8 +342,8 @@ webGLApp.prototype.drawScene = function()
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPositionBuffer.numItems);
     
     // draw textured quad from FBO to screen
-    // Setup orthographic matrices
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    // Setup orthographic matrices
     var identityMv = mat4.create();
     var orthoMatrix = mat4.create();
     mat4.identity(orthoMatrix);
