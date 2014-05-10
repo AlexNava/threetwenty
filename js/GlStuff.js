@@ -265,16 +265,18 @@ webGLApp.prototype.initOffscreenBuffer = function()
     // FBO
     this.rttFramebuffer = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer);
-    this.rttFramebuffer.width = 512;
-    this.rttFramebuffer.height = 256;
+    this.rttFramebuffer.width = 320;
+    this.rttFramebuffer.height = 200;
     
     // Texture for color
     this.rttTexture = this.gl.createTexture();
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    // No mipmap (npot)
-    //this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);    
+    // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
+    
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer.width, this.rttFramebuffer.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 
     // Renderbuffer for depth
