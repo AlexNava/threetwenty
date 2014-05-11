@@ -46,11 +46,21 @@ var BasicTextureFragmentShader = "\
     \
     varying vec2 vTextureCoord;\
     uniform sampler2D uSampler;\
+    uniform float uTextureW;\
+    uniform float uTextureH;\
+    uniform float uBlurAmount;\
     \
     void main()\
     {\
+        float multW = 1.0 / uTextureW;\
+        float multH = 1.0 / uTextureH;\
         vec4 fragmentColor;\
-        fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s / 320.0, vTextureCoord.t / 200.0));\
-        gl_FragColor = fragmentColor;\
+        \
+        fragmentColor = 2.0 * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s - uBlurAmount) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s + uBlurAmount) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t - uBlurAmount) * multH));\
+        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t + uBlurAmount) * multH));\
+        gl_FragColor = fragmentColor / 6.0;\
     }";
 

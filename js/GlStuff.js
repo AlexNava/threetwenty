@@ -11,8 +11,9 @@ webGLApp.prototype.setup = function()
         lastTime: 0
     }
 
-    this.angle = 0;
-
+    this.angle = 0.0;
+    this.blurriness = 0.0;
+    
     this.triangleVertexPositionBuffer = null;
     this.triangleVertexColorBuffer = null;
     this.quadVerticesBuffer = null;
@@ -255,6 +256,11 @@ webGLApp.prototype.initShaders = function()
 
     this.textureShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uPMatrix");
     this.textureShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uMVMatrix");
+    this.textureShaderProgram.samplerUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uSampler");
+    this.textureShaderProgram.textureWUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureW");
+    this.textureShaderProgram.textureHUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureH");
+    this.textureShaderProgram.blurAmountUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uBlurAmount");
+    
 }
 
 var lastSizeW = 0;
@@ -359,6 +365,9 @@ webGLApp.prototype.drawScene = function()
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
+    this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
+    this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
+    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, this.blurriness);
     
     this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
     this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
@@ -390,6 +399,19 @@ webGLApp.prototype.animate = function()
     else if ((this.gameKeyPressed[39] === true) && (this.gameKeyPressed[37] !== true)) // right
     {
         this.angle -= elapsed * 60.0 * 0.001;
+    }
+    
+    if ((this.gameKeyPressed[38] === true) && (this.gameKeyPressed[40] !== true)) // up
+    {
+        this.blurriness += elapsed * 0.001;
+        if (this.blurriness >= 1.5)
+            this.blurriness = 1.5;
+    }
+    else if ((this.gameKeyPressed[40] === true) && (this.gameKeyPressed[38] !== true)) // down
+    {
+        this.blurriness -= elapsed * 0.001;
+        if (this.blurriness <= 0.0)
+            this.blurriness = 0.0;
     }
 
     this.timer.lastTime = timeNow;
