@@ -21,9 +21,13 @@ webGLApp.prototype.setup = function()
     this.basicShaderProgram = null;
     this.textureShaderProgram = null;
 
-    this.rttFramebuffer = null;
-    this.rttTexture = null;
-    this.rttRenderbuffer = null;
+    this.rttFramebuffer1 = null;
+    this.rttTexture1 = null;
+    this.rttRenderbuffer1 = null;
+
+    this.rttFramebuffer2 = null;
+    this.rttTexture2 = null;
+    this.rttRenderbuffer2 = null;
     
     this.mainCanvas = $("#MainCanvas")[0];                
 
@@ -248,9 +252,6 @@ webGLApp.prototype.initShaders = function()
     this.textureShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aVertexPosition");
     this.gl.enableVertexAttribArray(this.textureShaderProgram.vertexPositionAttribute);
 
-    this.textureShaderProgram.vertexColorAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aVertexColor");
-    this.gl.enableVertexAttribArray(this.textureShaderProgram.vertexColorAttribute);
-    
     this.textureShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aTextureCoord");
     this.gl.enableVertexAttribArray(this.textureShaderProgram.textureCoordAttribute);
 
@@ -268,31 +269,57 @@ var lastSizeH = 0;
 
 webGLApp.prototype.initOffscreenBuffer = function()
 {    
-    // FBO
-    this.rttFramebuffer = this.gl.createFramebuffer();
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer);
-    this.rttFramebuffer.width = 320;
-    this.rttFramebuffer.height = 200;
-    
-    // Texture for color
-    this.rttTexture = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
+    // Two separate FBOs
+    this.rttFramebuffer1 = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
+    this.rttFramebuffer1.width = 320;
+    this.rttFramebuffer1.height = 200;
+
+    // Two textures for color
+    // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
+    this.rttTexture1 = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture1);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);    
-    // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
     
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer.width, this.rttFramebuffer.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer1.width, this.rttFramebuffer1.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 
-    // Renderbuffer for depth
-    this.rttRenderbuffer = this.gl.createRenderbuffer();
-    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer);
-    this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer.width, this.rttFramebuffer.height);
+    // Two renderbuffers (for depth?)
+    this.rttRenderbuffer1 = this.gl.createRenderbuffer();
+    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer1);
+    this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer1.width, this.rttFramebuffer1.height);
 
-    // Bind to current FBO
-    this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture, 0);
-    this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer);
+    // Bind to 1st FBO
+    this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture1, 0);
+    this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer1);
+    
+    
+    // 2nd FBO
+    this.rttFramebuffer2 = this.gl.createFramebuffer();
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
+    this.rttFramebuffer2.width = 320;
+    this.rttFramebuffer2.height = 200;
+
+    // 2nd texture
+    this.rttTexture2 = this.gl.createTexture();
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);    
+    
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer2.width, this.rttFramebuffer2.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+
+    // 2nd renderbuffer
+    this.rttRenderbuffer2 = this.gl.createRenderbuffer();
+    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer2);
+    this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer2.width, this.rttFramebuffer2.height);
+
+    // Bind to 2nd FBO
+    this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture2, 0);
+    this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer2);
     
     // Switch to default texture/renderbuff/framebuff
     this.gl.bindTexture(this.gl.TEXTURE_2D, null);
@@ -318,13 +345,10 @@ webGLApp.prototype.checkResize = function(canvas, projMatrix)
 
 webGLApp.prototype.drawScene = function()
 {
-    // You have to use buffer objects!
-	// AND
-	// You have to provide vertex / fragment shaders
     this.checkResize(this.mainCanvas, this.pMatrix);
 
-    // draw object on custom FBO
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer);
+    // draw object on 1st FBO
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
     this.gl.viewport(0, 0, 320, 200);
     
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
@@ -349,25 +373,54 @@ webGLApp.prototype.drawScene = function()
     this.gl.vertexAttribPointer(this.basicShaderProgram.vertexColorAttribute, this.triangleVertexColorBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
     this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPositionBuffer.numItems);
-    
-    // draw textured quad from FBO to screen
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-    this.gl.viewport(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+
+    //----------------------------------------------------------------------------------------------
+    // Intermediate step: draw textured quad from first FBO to second FBO
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
+    this.gl.viewport(0, 0, 320, 200);
     
     // Setup orthographic matrices
     var identityMv = mat4.create();
     var orthoMatrix = mat4.create();
+    mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
+    
+    this.gl.useProgram(this.textureShaderProgram);
+    
+    this.gl.activeTexture(this.gl.TEXTURE0);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture1);
+    this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
+    this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
+    this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
+    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 1.0);
+    
+    this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
+    this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
+
+    // Draw stuff
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVerticesBuffer);
+    this.gl.vertexAttribPointer(this.textureShaderProgram.vertexPositionAttribute, this.quadVerticesBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordsBuffer);
+    this.gl.vertexAttribPointer(this.textureShaderProgram.textureCoordAttribute, this.quadCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+    this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVerticesBuffer.numItems);
+
+    //----------------------------------------------------------------------------------------------
+    // draw textured quad from second FBO to screen
+    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    this.gl.viewport(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+    
+    // Setup orthographic matrices
     mat4.identity(orthoMatrix);
     mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
     
     this.gl.useProgram(this.textureShaderProgram);
     
     this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
     this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
     this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
-    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, this.blurriness);
+    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 10.0);
     
     this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
     this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
@@ -391,6 +444,7 @@ webGLApp.prototype.animate = function()
     }
     
     // Update stuff based on timers and keys
+    this.angle += 60.0 * 0.001;
     
     if ((this.gameKeyPressed[37] === true) && (this.gameKeyPressed[39] !== true)) // left
     {
