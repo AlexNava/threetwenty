@@ -56,12 +56,12 @@ var BasicTextureFragmentShader = "\
         float multH = 1.0 / uTextureH;\
         vec4 fragmentColor;\
         \
-        fragmentColor = 2.0 * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s - uBlurAmount) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s + uBlurAmount) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t - uBlurAmount) * multH));\
-        fragmentColor += texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t + uBlurAmount) * multH));\
-        gl_FragColor = fragmentColor / 6.0;\
+        fragmentColor = texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s - 1.0) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s + 1.0) * multW, (vTextureCoord.t) * multH));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t - 1.0) * multH));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t + 1.0) * multH));\
+        gl_FragColor = fragmentColor / (1.0 + uBlurAmount * 4.0);\
     }";
 
 // Another vertex shader with texture support

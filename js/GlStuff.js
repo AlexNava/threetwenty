@@ -350,7 +350,8 @@ webGLApp.prototype.drawScene = function()
     // draw object on 1st FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
     this.gl.viewport(0, 0, 320, 200);
-    
+    this.gl.enable(this.gl.DEPTH_TEST);
+
     this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 
@@ -378,6 +379,7 @@ webGLApp.prototype.drawScene = function()
     // Intermediate step: draw textured quad from first FBO to second FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
     this.gl.viewport(0, 0, 320, 200);
+    this.gl.disable(this.gl.DEPTH_TEST);
     
     // Setup orthographic matrices
     var identityMv = mat4.create();
@@ -391,7 +393,7 @@ webGLApp.prototype.drawScene = function()
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
     this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
     this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
-    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 1.0);
+    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, this.blurriness);
     
     this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
     this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
@@ -420,7 +422,7 @@ webGLApp.prototype.drawScene = function()
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
     this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
     this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
-    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 10.0);
+    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 0.0);
     
     this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
     this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
