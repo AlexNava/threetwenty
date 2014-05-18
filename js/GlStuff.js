@@ -171,10 +171,10 @@ webGLApp.prototype.initBuffers = function()
     this.quadCoordsBuffer = this.gl.createBuffer();
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordsBuffer);
     var quadCoords = [
-        0.0,     0.0,
-        0.0,   200.0,
-        320.0,   0.0,
-        320.0, 200.0
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 0.0,
+        1.0, 1.0
     ];
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
     this.quadCoordsBuffer.itemSize = 2;

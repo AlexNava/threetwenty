@@ -40,7 +40,7 @@ var BasicTextureVertexShader = "\
         vTextureCoord = aTextureCoord;\
     }";
 
-// Simple fragment shader with texture support
+// Simple fragment shader with texture support (with some blur just in case)
 var BasicTextureFragmentShader = "\
     precision mediump float;\
     \
@@ -52,20 +52,20 @@ var BasicTextureFragmentShader = "\
     \
     void main()\
     {\
-        float multW = 1.0 / uTextureW;\
-        float multH = 1.0 / uTextureH;\
+        float OneX = 1.0 / uTextureW;\
+        float OneY = 1.0 / uTextureH;\
         vec4 fragmentColor;\
         \
-        fragmentColor = texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s - 1.0) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s + 1.0) * multW, (vTextureCoord.t) * multH));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t - 1.0) * multH));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2((vTextureCoord.s) * multW, (vTextureCoord.t + 1.0) * multH));\
+        fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s - OneX, vTextureCoord.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s + OneX, vTextureCoord.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t - OneY));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t + OneY));\
         gl_FragColor = fragmentColor / (1.0 + uBlurAmount * 4.0);\
     }";
 
 // Another vertex shader with texture support
-var BasicTextureVertexShader2 = "\
+var CrtVertexShader2 = "\
     attribute vec4 aVertexPosition;\
     attribute vec2 aTextureCoord;\
     \
@@ -80,7 +80,7 @@ var BasicTextureVertexShader2 = "\
     }";
 
 // Another fragment shader with texture support
-var BasicTextureFragmentShader2 = "\
+var CrtFragmentShader2 = "\
     precision mediump float;\
     \
     varying vec2 vTextureCoord;\
