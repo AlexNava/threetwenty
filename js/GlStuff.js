@@ -20,6 +20,7 @@ webGLApp.prototype.setup = function()
     this.quadCoordsBuffer = null;
     this.basicShaderProgram = null;
     this.textureShaderProgram = null;
+    this.crtShaderProgram = null;
 
     this.rttFramebuffer1 = null;
     this.rttTexture1 = null;
@@ -230,8 +231,33 @@ webGLApp.prototype.initShaders = function()
     this.gl.attachShader(this.textureShaderProgram, fragmentShader);
     this.gl.linkProgram(this.textureShaderProgram);
 
+    // Init CRT shader    
+    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+
+    this.gl.shaderSource(vertexShader, CrtVertexShader);
+    this.gl.compileShader(vertexShader);
+    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS))
+    {
+        alert(this.gl.getShaderInfoLog(vertexShader));
+    }
+
+    this.gl.shaderSource(fragmentShader, CrtFragmentShader);
+    this.gl.compileShader(fragmentShader);
+    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS))
+    {
+        alert(this.gl.getShaderInfoLog(fragmentShader));
+    }
+
+    this.crtShaderProgram = this.gl.createProgram();
+    this.gl.attachShader(this.crtShaderProgram, vertexShader);
+    this.gl.attachShader(this.crtShaderProgram, fragmentShader);
+    this.gl.linkProgram(this.crtShaderProgram);
+
+    // Check shaders, set uniforms
     if (!this.gl.getProgramParameter(this.basicShaderProgram, this.gl.LINK_STATUS)
-       && !this.gl.getProgramParameter(this.textureShaderProgram, this.gl.LINK_STATUS))
+       || !this.gl.getProgramParameter(this.textureShaderProgram, this.gl.LINK_STATUS)
+       || !this.gl.getProgramParameter(this.crtShaderProgram, this.gl.LINK_STATUS))
     {
       throw "Could not initialise shaders";
     }
@@ -261,6 +287,19 @@ webGLApp.prototype.initShaders = function()
     this.textureShaderProgram.textureWUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureW");
     this.textureShaderProgram.textureHUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureH");
     this.textureShaderProgram.blurAmountUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uBlurAmount");
+
+    this.gl.useProgram(this.crtShaderProgram);
+    
+    this.crtShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.crtShaderProgram, "aVertexPosition");
+    this.gl.enableVertexAttribArray(this.crtShaderProgram.vertexPositionAttribute);
+
+    this.crtShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.crtShaderProgram, "aTextureCoord");
+    this.gl.enableVertexAttribArray(this.crtShaderProgram.textureCoordAttribute);
+
+    this.crtShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uPMatrix");
+    this.crtShaderProgram.samplerUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uSampler");
+    this.crtShaderProgram.scanlinesUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uScanlines");
+    this.crtShaderProgram.barrelUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uBarrelDistortion");
     
 }
 
@@ -347,7 +386,7 @@ webGLApp.prototype.drawScene = function()
 {
     this.checkResize(this.mainCanvas, this.pMatrix);
 
-    // draw object on 1st FBO
+    // draw scene on 1st FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
     this.gl.viewport(0, 0, 320, 200);
     this.gl.enable(this.gl.DEPTH_TEST);
@@ -415,23 +454,20 @@ webGLApp.prototype.drawScene = function()
     mat4.identity(orthoMatrix);
     mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
     
-    this.gl.useProgram(this.textureShaderProgram);
+    this.gl.useProgram(this.crtShaderProgram);
     
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
-    this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
-    this.gl.uniform1f(this.textureShaderProgram.textureWUniform, 320);
-    this.gl.uniform1f(this.textureShaderProgram.textureHUniform, 200);
-    this.gl.uniform1f(this.textureShaderProgram.blurAmountUniform, 0.0);
+    this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, this.mainCanvas.height / 2.5);
+    this.gl.uniform1f(this.crtShaderProgram.barrelUniform, 0.0);
     
-    this.gl.uniformMatrix4fv(this.textureShaderProgram.mvMatrixUniform, false, identityMv);
-    this.gl.uniformMatrix4fv(this.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
+    this.gl.uniformMatrix4fv(this.crtShaderProgram.pMatrixUniform, false, orthoMatrix);
 
     // Draw stuff
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVerticesBuffer);
-    this.gl.vertexAttribPointer(this.textureShaderProgram.vertexPositionAttribute, this.quadVerticesBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribPointer(this.crtShaderProgram.vertexPositionAttribute, this.quadVerticesBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordsBuffer);
-    this.gl.vertexAttribPointer(this.textureShaderProgram.textureCoordAttribute, this.quadCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    this.gl.vertexAttribPointer(this.crtShaderProgram.textureCoordAttribute, this.quadCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVerticesBuffer.numItems);
     
