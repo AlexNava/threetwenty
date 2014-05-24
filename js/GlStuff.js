@@ -50,7 +50,6 @@ webGLApp.prototype.setup = function()
         alert('Error while booting WebGL: ' + exception);
     }
 
-    this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
     this.gl.enable(this.gl.DEPTH_TEST);
     
     this.mvMatrix = mat4.create();
@@ -455,10 +454,11 @@ webGLApp.prototype.drawScene = function()
     mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
     
     this.gl.useProgram(this.crtShaderProgram);
-    
+	
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
-    this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, this.mainCanvas.height / 2.5);
+    //this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, this.mainCanvas.height / 2.5);
+	this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, 200);
     this.gl.uniform1f(this.crtShaderProgram.barrelUniform, 0.0);
     
     this.gl.uniformMatrix4fv(this.crtShaderProgram.pMatrixUniform, false, orthoMatrix);

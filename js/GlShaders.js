@@ -90,9 +90,10 @@ var CrtFragmentShader = "\
     void main()\
     {\
         float scanlineNear = 2.0 * abs(fract(vTextureCoord.t * float(uScanlines) + 0.5) - 0.5);\
-        scanlineNear = pow(scanlineNear, 2.0);\
+		float discretizedTextureT = floor(vTextureCoord.t * float(uScanlines)) / float(uScanlines);\
+        scanlineNear = pow(scanlineNear, 1.0);\
         vec4 fragmentColor;\
         \
-        fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
+        fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, discretizedTextureT));\
         gl_FragColor = vec4(fragmentColor.rgb * scanlineNear * 2.0, 1.0);\
     }";
