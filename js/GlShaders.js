@@ -40,7 +40,7 @@ var BasicTextureVertexShader = "\
         vTextureCoord = aTextureCoord;\
     }";
 
-// Simple fragment shader with texture support (with some blur just in case)
+// Simple fragment shader with texture support
 var BasicTextureFragmentShader = "\
     precision mediump float;\
     \
@@ -57,11 +57,49 @@ var BasicTextureFragmentShader = "\
         vec4 fragmentColor;\
         \
         fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s - OneX, vTextureCoord.t));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s + OneX, vTextureCoord.t));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t - OneY));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t + OneY));\
-        gl_FragColor = fragmentColor / (1.0 + uBlurAmount * 4.0);\
+        gl_FragColor = vec4(fragmentColor.rgb, 1.0);\
+    }";
+
+// Blur texture vertex shader
+var BlurVertexShader = "\
+    attribute vec4 aVertexPosition;\
+    attribute vec2 aTextureCoord;\
+    \
+    uniform mat4 uMVMatrix;\
+    uniform mat4 uPMatrix;\
+    varying vec2 vTextureCoord;\
+    \
+    void main()\
+    {\
+        gl_Position = uPMatrix * uMVMatrix * aVertexPosition;\
+        vTextureCoord = aTextureCoord;\
+    }";
+
+// Blur texture fragment shader
+var BlurFragmentShader = "\
+    precision mediump float;\
+    \
+    varying vec2 vTextureCoord;\
+    uniform sampler2D uSampler;\
+    uniform float uTextureW;\
+    uniform float uTextureH;\
+    uniform float uBlurAmount;\
+    uniform vec2 uBlurShift;\
+    uniform vec4 uClearColor;\
+    \
+    void main()\
+    {\
+        float OneX = 1.0 / uTextureW;\
+        float OneY = 1.0 / uTextureH;\
+        vec2 targetPos = vec2(vTextureCoord.s - uBlurShift.s * OneX, vTextureCoord.t - uBlurShift.t * OneY);\
+        vec4 fragmentColor;\
+        \
+        fragmentColor = texture2D(uSampler, vec2(targetPos.s, targetPos.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s + OneX, targetPos.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s + OneX, targetPos.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s, targetPos.t - OneY));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s, targetPos.t + OneY));\
+        gl_FragColor = vec4(uClearColor.a * uClearColor.rgb + (1.0 - uClearColor.a) * fragmentColor.rgb / (1.0 + uBlurAmount * 4.0), 1.0);\
     }";
 
 // Another vertex shader with texture support
@@ -89,11 +127,17 @@ var CrtFragmentShader = "\
     \
     void main()\
     {\
-        float scanlineNear = 2.0 * abs(fract(vTextureCoord.t * float(uScanlines) + 0.5) - 0.5);\
+        float ramp = fract(vTextureCoord.t * float(uScanlines) * 0.5 + 0.5) - 0.5;\
+        float scanlineNear = 2.0 * abs(ramp);\
+        bool evenLine = (ramp > 0.0);\
 		float discretizedTextureT = floor(vTextureCoord.t * float(uScanlines)) / float(uScanlines);\
-        scanlineNear = pow(scanlineNear, 1.0);\
+        /*scanlineNear = pow(scanlineNear, 1.0)*/;\
         vec4 fragmentColor;\
         \
         fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, discretizedTextureT));\
-        gl_FragColor = vec4(fragmentColor.rgb * scanlineNear * 2.0, 1.0);\
+        /*gl_FragColor = vec4(fragmentColor.rgb * scanlineNear * 2.0, 1.0);*/\
+        if (evenLine)\
+            gl_FragColor = vec4(fragmentColor.rgb * 1.1, 1.0);\
+        else\
+            gl_FragColor = vec4(fragmentColor.rgb * 0.9, 1.0);\
     }";

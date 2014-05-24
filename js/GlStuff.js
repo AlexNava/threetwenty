@@ -13,7 +13,9 @@ webGLApp.prototype.setup = function()
 
     this.angle = 0.0;
     this.blurriness = 0.0;
-    
+    this.blurShiftX = 1.0;
+    this.blurShiftY = 1.0;
+
     this.triangleVertexPositionBuffer = null;
     this.triangleVertexColorBuffer = null;
     this.quadVerticesBuffer = null;
@@ -230,7 +232,30 @@ webGLApp.prototype.initShaders = function()
     this.gl.attachShader(this.textureShaderProgram, fragmentShader);
     this.gl.linkProgram(this.textureShaderProgram);
 
-    // Init CRT shader    
+    // Init blur shader
+    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+
+    this.gl.shaderSource(vertexShader, BlurVertexShader);
+    this.gl.compileShader(vertexShader);
+    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS))
+    {
+        alert(this.gl.getShaderInfoLog(vertexShader));
+    }
+
+    this.gl.shaderSource(fragmentShader, BlurFragmentShader);
+    this.gl.compileShader(fragmentShader);
+    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS))
+    {
+        alert(this.gl.getShaderInfoLog(fragmentShader));
+    }
+
+    this.blurShaderProgram = this.gl.createProgram();
+    this.gl.attachShader(this.blurShaderProgram, vertexShader);
+    this.gl.attachShader(this.blurShaderProgram, fragmentShader);
+    this.gl.linkProgram(this.blurShaderProgram);
+
+    // Init CRT shader
     var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
 
@@ -253,14 +278,17 @@ webGLApp.prototype.initShaders = function()
     this.gl.attachShader(this.crtShaderProgram, fragmentShader);
     this.gl.linkProgram(this.crtShaderProgram);
 
-    // Check shaders, set uniforms
+    // Check shaders
     if (!this.gl.getProgramParameter(this.basicShaderProgram, this.gl.LINK_STATUS)
        || !this.gl.getProgramParameter(this.textureShaderProgram, this.gl.LINK_STATUS)
+       || !this.gl.getProgramParameter(this.blurShaderProgram, this.gl.LINK_STATUS)
        || !this.gl.getProgramParameter(this.crtShaderProgram, this.gl.LINK_STATUS))
     {
       throw "Could not initialise shaders";
     }
 
+    // Set uniforms
+    // Basic shader
     this.gl.useProgram(this.basicShaderProgram);
 
     this.basicShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.basicShaderProgram, "aVertexPosition");
@@ -272,6 +300,7 @@ webGLApp.prototype.initShaders = function()
     this.basicShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.basicShaderProgram, "uPMatrix");
     this.basicShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.basicShaderProgram, "uMVMatrix");
 
+    // Basic texture
     this.gl.useProgram(this.textureShaderProgram);
     
     this.textureShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aVertexPosition");
@@ -285,8 +314,26 @@ webGLApp.prototype.initShaders = function()
     this.textureShaderProgram.samplerUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uSampler");
     this.textureShaderProgram.textureWUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureW");
     this.textureShaderProgram.textureHUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureH");
-    this.textureShaderProgram.blurAmountUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uBlurAmount");
 
+    // Blur
+    this.gl.useProgram(this.blurShaderProgram);
+    
+    this.blurShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.blurShaderProgram, "aVertexPosition");
+    this.gl.enableVertexAttribArray(this.blurShaderProgram.vertexPositionAttribute);
+
+    this.blurShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.blurShaderProgram, "aTextureCoord");
+    this.gl.enableVertexAttribArray(this.blurShaderProgram.textureCoordAttribute);
+
+    this.blurShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uPMatrix");
+    this.blurShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uMVMatrix");
+    this.blurShaderProgram.samplerUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uSampler");
+    this.blurShaderProgram.textureWUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uTextureW");
+    this.blurShaderProgram.textureHUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uTextureH");
+    this.blurShaderProgram.blurAmountUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uBlurAmount");
+    this.blurShaderProgram.blurShiftUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uBlurShift");
+    this.blurShaderProgram.clearColorUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uClearColor");
+
+    // CRT
     this.gl.useProgram(this.crtShaderProgram);
     
     this.crtShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.crtShaderProgram, "aVertexPosition");
@@ -390,14 +437,51 @@ webGLApp.prototype.drawScene = function()
     this.gl.viewport(0, 0, 320, 200);
     this.gl.enable(this.gl.DEPTH_TEST);
 
-    this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
-    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+//    this.gl.clearColor(0.5, 0.5, 0.5, 1.0);
+//    this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+    
+    // Instead of clearing color buffer, put the previous frame on it (blurred)
+    this.gl.disable(this.gl.DEPTH_TEST);
+    
+    {
+        // Setup orthographic matrices
+        var identityMv = mat4.create();
+        var orthoMatrix = mat4.create();
+        mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
 
+        this.gl.useProgram(this.blurShaderProgram);
+
+        this.gl.activeTexture(this.gl.TEXTURE0);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
+        this.gl.uniform1i(this.blurShaderProgram.samplerUniform, 0);
+        this.gl.uniform1f(this.blurShaderProgram.textureWUniform, 320);
+        this.gl.uniform1f(this.blurShaderProgram.textureHUniform, 200);
+        this.gl.uniform1f(this.blurShaderProgram.blurAmountUniform, 0.5);
+        this.gl.uniform2f(this.blurShaderProgram.blurShiftUniform, this.blurShiftX, this.blurShiftY);
+        this.gl.uniform4f(this.blurShaderProgram.clearColorUniform, 0.5, 0.5, 0.5, 0.05);
+
+        this.gl.uniformMatrix4fv(this.blurShaderProgram.mvMatrixUniform, false, identityMv);
+        this.gl.uniformMatrix4fv(this.blurShaderProgram.pMatrixUniform, false, orthoMatrix);
+
+        // Draw stuff
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVerticesBuffer);
+        this.gl.vertexAttribPointer(this.blurShaderProgram.vertexPositionAttribute, this.quadVerticesBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordsBuffer);
+        this.gl.vertexAttribPointer(this.blurShaderProgram.textureCoordAttribute, this.quadCoordsBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVerticesBuffer.numItems);
+    }
+    
+    this.gl.enable(this.gl.DEPTH_TEST);
+    this.gl.clear(this.gl.DEPTH_BUFFER_BIT);
+    // End of blur-out
+    
+    
     mat4.identity(this.pMatrix);
     mat4.perspective(this.pMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
 
     mat4.identity(this.mvMatrix);
-    mat4.translate(this.mvMatrix, this.mvMatrix, [0.0, 0.0, -2.0]);
+    mat4.translate(this.mvMatrix, this.mvMatrix, [0.0, 0.0, -4.0]);
     mat4.rotate(this.mvMatrix, this.mvMatrix, (this.angle * 3.14159 / 180.0), [0, 0, 1]);
 
     this.gl.useProgram(this.basicShaderProgram);
@@ -453,7 +537,7 @@ webGLApp.prototype.drawScene = function()
     mat4.identity(orthoMatrix);
     mat4.ortho(orthoMatrix, 0, 320, 0, 200, -1, 1);
     
-    this.gl.useProgram(this.crtShaderProgram);
+    //this.gl.useProgram(this.crtShaderProgram);
 	
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
@@ -482,28 +566,40 @@ webGLApp.prototype.animate = function()
     }
     
     // Update stuff based on timers and keys
-    this.angle += 60.0 * 0.001;
+    this.angle += 180.0 * 0.001;
     
     if ((this.gameKeyPressed[37] === true) && (this.gameKeyPressed[39] !== true)) // left
     {
-        this.angle += elapsed * 60.0 * 0.001;
+//        this.angle += elapsed * 60.0 * 0.001;
+        this.blurShiftX -= elapsed * 4.0 * 0.001;
+        if (this.blurShiftX <= -5)
+            this.blurShiftX = -5;
     }
     else if ((this.gameKeyPressed[39] === true) && (this.gameKeyPressed[37] !== true)) // right
     {
-        this.angle -= elapsed * 60.0 * 0.001;
+//        this.angle -= elapsed * 60.0 * 0.001;
+        this.blurShiftX += elapsed * 4.0 * 0.001;
+        if (this.blurShiftX >= 5)
+            this.blurShiftX = 5;
     }
     
     if ((this.gameKeyPressed[38] === true) && (this.gameKeyPressed[40] !== true)) // up
     {
-        this.blurriness += elapsed * 0.001;
-        if (this.blurriness >= 1.5)
-            this.blurriness = 1.5;
+//        this.blurriness += elapsed * 0.001;
+//        if (this.blurriness >= 1.5)
+//            this.blurriness = 1.5;
+        this.blurShiftY += elapsed * 4.0 * 0.001;
+        if (this.blurShiftY >= 5)
+            this.blurShiftY = 5;
     }
     else if ((this.gameKeyPressed[40] === true) && (this.gameKeyPressed[38] !== true)) // down
     {
-        this.blurriness -= elapsed * 0.001;
-        if (this.blurriness <= 0.0)
-            this.blurriness = 0.0;
+//        this.blurriness -= elapsed * 0.001;
+//        if (this.blurriness <= 0.0)
+//            this.blurriness = 0.0;
+        this.blurShiftY -= elapsed * 4.0 * 0.001;
+        if (this.blurShiftY <= -5)
+            this.blurShiftY = -5;
     }
 
     this.timer.lastTime = timeNow;
