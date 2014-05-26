@@ -95,7 +95,7 @@ var BlurFragmentShader = "\
         vec4 fragmentColor;\
         \
         fragmentColor = texture2D(uSampler, vec2(targetPos.s, targetPos.t));\
-        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s + OneX, targetPos.t));\
+        fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s - OneX, targetPos.t));\
         fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s + OneX, targetPos.t));\
         fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s, targetPos.t - OneY));\
         fragmentColor += uBlurAmount * texture2D(uSampler, vec2(targetPos.s, targetPos.t + OneY));\
