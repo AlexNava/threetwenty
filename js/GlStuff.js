@@ -36,7 +36,7 @@ webGLApp.prototype.setup = function()
 
     try    
     {
-        this.initGameKeyboard();
+        this.initInputs();
     }
     catch (exception)
     {
@@ -59,13 +59,11 @@ webGLApp.prototype.setup = function()
 
 }
 
-webGLApp.prototype.initGameKeyboard = function()
-{
+webGLApp.prototype.initInputs = function() {
     this.gameKeyPressed = new Array(0);
 
     window.addEventListener("keydown",
-        function(event)
-        {
+        function(event) {
             this.gameKeyPressed[event.keyCode] = true;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
@@ -73,17 +71,39 @@ webGLApp.prototype.initGameKeyboard = function()
     );
 
     window.addEventListener("keyup",
-        function(event)
-        {
+        function(event) {
             this.gameKeyPressed[event.keyCode] = false;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
     );
+
+    window.addEventListener("touchstart",
+        function(event) {
+            event.preventDefault();
+            var touch = event.touches[0];
+        },
+        false
+    );
+    
+    window.addEventListener("touchmove",
+        function(event) {
+            event.preventDefault();
+            var touch = event.touches[0];
+        },
+        false
+    );
+    
+    window.addEventListener("touchend",
+        function(event) {
+            event.preventDefault();
+            var touch = event.changedTouches[0];
+        },
+        false
+    );
     
     window.addEventListener("focusout",
-        function(event)
-        {
+        function(event) {
             this.gameKeyPressed = new Array(0);
         }.bind(this)
     );
