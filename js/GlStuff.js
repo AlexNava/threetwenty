@@ -60,11 +60,16 @@ webGLApp.prototype.setup = function()
 }
 
 webGLApp.prototype.initInputs = function() {
-    this.gameKeyPressed = new Array(0);
+    this.keyPressed = new Array(0);
+    this.touchPoints = new Array(0);
+    this.gestureLeft = false;
+    this.gestureRight = false;
+    this.gestureUp = false;
+    this.gestureDown = false;
 
     window.addEventListener("keydown",
         function(event) {
-            this.gameKeyPressed[event.keyCode] = true;
+            this.keyPressed[event.keyCode] = true;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
@@ -72,7 +77,7 @@ webGLApp.prototype.initInputs = function() {
 
     window.addEventListener("keyup",
         function(event) {
-            this.gameKeyPressed[event.keyCode] = false;
+            this.keyPressed[event.keyCode] = false;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
@@ -81,7 +86,17 @@ webGLApp.prototype.initInputs = function() {
     window.addEventListener("touchstart",
         function(event) {
             event.preventDefault();
-            var touch = event.changedTouches[0];
+            var timeNow = new Date().getTime();
+            for (var i = 0; i < event.changedTouches.length; i++){
+                this.touchPoints[event.changedTouches[i].identifier] = {
+                    startX : event.changedTouches[i].clientX,
+                    startY : event.changedTouches[i].clientY,
+                    startTime: timeNow
+                };
+                this.touchPoints[event.changedTouches[i].identifier].currentX = this.touchPoints[event.changedTouches[i].identifier].startX;
+                this.touchPoints[event.changedTouches[i].identifier].currentY = this.touchPoints[event.changedTouches[i].identifier].startY;
+
+            }
         }.bind(this),
         false
     );
@@ -89,7 +104,13 @@ webGLApp.prototype.initInputs = function() {
     window.addEventListener("touchmove",
         function(event) {
             event.preventDefault();
-            var touch = event.changedTouches[0];
+            for (var i = 0; i < event.changedTouches.length; i++){
+                this.touchPoints[event.changedTouches[i].identifier].lastX = this.touchPoints[event.changedTouches[i].identifier].currentX;
+                this.touchPoints[event.changedTouches[i].identifier].lastY = this.touchPoints[event.changedTouches[i].identifier].currentY;
+                this.touchPoints[event.changedTouches[i].identifier].currentX = event.changedTouches[i].clientX;
+                this.touchPoints[event.changedTouches[i].identifier].currentY = event.changedTouches[i].clientY;
+                this.touchPoints[event.changedTouches[i].identifier].relativeCheck = false;
+            }
         }.bind(this),
         false
     );
@@ -97,17 +118,47 @@ webGLApp.prototype.initInputs = function() {
     window.addEventListener("touchend",
         function(event) {
             event.preventDefault();
-            var touch = event.changedTouches[0];
+            for (var i = 0; i < event.changedTouches.length; i++){
+                this.touchPoints[event.changedTouches[i].identifier] = {};
+            }
         }.bind(this),
         false
     );
     
     window.addEventListener("focusout",
         function(event) {
-            this.gameKeyPressed = new Array(0);
+            this.keyPressed = new Array(0);
+            this.touchPoints = new Array(0);
         }.bind(this),
 		false
     );
+}
+
+webGLApp.prototype.pollTouchGestures = function(){
+    // check motion on 4 directions
+    this.gestureLeft = false;
+    this.gestureRight = false;
+    this.gestureUp = false;
+    this.gestureDown = false;
+    if (this.touchPoints.length > 0){
+        if (this.touchPoints[0].relativeCheck === false){
+            var deltaX = this.touchPoints[0].currentX - this.touchPoints[0].lastX;
+            var deltaY = this.touchPoints[0].currentY - this.touchPoints[0].lastY;
+            if (deltaX < -2){
+                this.gestureLeft = true;
+            }
+            if (deltaX > 2){
+                this.gestureRight = true;
+            }
+            if (deltaY < -2){
+                this.gestureUp = true;
+            }
+            if (deltaY > 2){
+                this.gestureDown = true;
+            }
+            this.touchPoints[0].relativeCheck = true;
+        }
+    }
 }
 
 webGLApp.prototype.initGL = function()
@@ -566,14 +617,16 @@ webGLApp.prototype.animate = function()
     // Update stuff based on timers and keys
     this.angle += 180.0 * 0.001;
     
-    if ((this.gameKeyPressed[37] === true) && (this.gameKeyPressed[39] !== true)) // left
+    this.pollTouchGestures();
+    
+    if ((this.keyPressed[37] === true) || (this.gestureLeft === true)) // left
     {
 //        this.angle += elapsed * 60.0 * 0.001;
         this.blurShiftX -= elapsed * 4.0 * 0.001;
         if (this.blurShiftX <= -5)
             this.blurShiftX = -5;
     }
-    else if ((this.gameKeyPressed[39] === true) && (this.gameKeyPressed[37] !== true)) // right
+    else if ((this.keyPressed[39] === true) || (this.gestureRight === true)) // right
     {
 //        this.angle -= elapsed * 60.0 * 0.001;
         this.blurShiftX += elapsed * 4.0 * 0.001;
@@ -581,7 +634,7 @@ webGLApp.prototype.animate = function()
             this.blurShiftX = 5;
     }
     
-    if ((this.gameKeyPressed[38] === true) && (this.gameKeyPressed[40] !== true)) // up
+    if ((this.keyPressed[38] === true) || (this.gestureUp === true)) // up
     {
 //        this.blurriness += elapsed * 0.001;
 //        if (this.blurriness >= 1.5)
@@ -590,7 +643,7 @@ webGLApp.prototype.animate = function()
         if (this.blurShiftY >= 5)
             this.blurShiftY = 5;
     }
-    else if ((this.gameKeyPressed[40] === true) && (this.gameKeyPressed[38] !== true)) // down
+    else if ((this.keyPressed[40] === true) || (this.gestureDown === true)) // down
     {
 //        this.blurriness -= elapsed * 0.001;
 //        if (this.blurriness <= 0.0)
