@@ -81,16 +81,16 @@ webGLApp.prototype.initInputs = function() {
     window.addEventListener("touchstart",
         function(event) {
             event.preventDefault();
-            var touch = event.touches[0];
-        },
+            var touch = event.changedTouches[0];
+        }.bind(this),
         false
     );
     
     window.addEventListener("touchmove",
         function(event) {
             event.preventDefault();
-            var touch = event.touches[0];
-        },
+            var touch = event.changedTouches[0];
+        }.bind(this),
         false
     );
     
@@ -98,38 +98,16 @@ webGLApp.prototype.initInputs = function() {
         function(event) {
             event.preventDefault();
             var touch = event.changedTouches[0];
-        },
+        }.bind(this),
         false
     );
     
     window.addEventListener("focusout",
         function(event) {
             this.gameKeyPressed = new Array(0);
-        }.bind(this)
+        }.bind(this),
+		false
     );
-    
-//    $(window).keydown(
-//        function(event)
-//        {
-//            this.gameKeyPressed[event.keyCode] = true;
-//            //console.log("keyboard event: key pressed " + event.keyCode);
-//        }.bind(this)
-//    );
-//
-//    $(window).keyup(
-//        function(event)
-//        {
-//            this.gameKeyPressed[event.keyCode] = false;
-//            //console.log("keyboard event: key pressed " + event.keyCode);
-//        }.bind(this)
-//    );
-//    
-//    $(window).focusout(
-//        function(event)
-//        {
-//            this.gameKeyPressed = new Array(0);
-//        }.bind(this)
-//    );
 }
 
 webGLApp.prototype.initGL = function()
