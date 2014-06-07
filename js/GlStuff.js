@@ -24,6 +24,8 @@ webGLApp.prototype.setup = function()
     this.textureShaderProgram = null;
     this.crtShaderProgram = null;
 
+    this.cubeTexture = null;
+    
     this.rttFramebuffer1 = null;
     this.rttTexture1 = null;
     this.rttRenderbuffer1 = null;
@@ -167,6 +169,7 @@ webGLApp.prototype.initGL = function()
     this.gl.viewportWidth = this.mainCanvas.width;
     this.gl.viewportHeight = this.mainCanvas.height;
 
+    this.initTextures();
     this.initBuffers();
     this.initShaders();
     this.initOffscreenBuffer();
@@ -442,7 +445,7 @@ webGLApp.prototype.initOffscreenBuffer = function()
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
     this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);    
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
     
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer2.width, this.rttFramebuffer2.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 
@@ -461,13 +464,34 @@ webGLApp.prototype.initOffscreenBuffer = function()
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 }
 
+webGLApp.prototype.initTextures = function() {
+    this.cubeTexture = this.gl.createTexture();
+    var cubeImage = new Image();
+    var webGLAppContext = this;
+    cubeImage.onload = function() {
+        webGLAppContext.handleTextureLoaded(cubeImage, webGLAppContext.cubeTexture);
+    }
+    cubeImage.src = "SnoopDoge.jpg";
+}
+
+webGLApp.prototype.handleTextureLoaded = function(image, texture) {
+    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+    this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);    
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+}
+
 webGLApp.prototype.checkResize = function(canvas, projMatrix)
 {
     //if ((canvas.width !== lastSizeW) || (canvas.height !== lastSizeH))
-    if ((document.body.clientWidth !== lastSizeW) || (document.body.clientHeight !== lastSizeH))
+    //if ((document.body.clientWidth !== lastSizeW) || (document.body.clientHeight !== lastSizeH))
+    if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH))
     {
-        lastSizeH = document.body.clientHeight;
-        lastSizeW = document.body.clientWidth;
+        lastSizeH = window.innerHeight;
+        lastSizeW = window.innerWidth;
         
         canvas.width = lastSizeW;
         canvas.height = lastSizeH;
@@ -589,7 +613,7 @@ webGLApp.prototype.drawScene = function()
     //this.gl.useProgram(this.crtShaderProgram);
 	
     this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
+    this.gl.bindTexture(this.gl.TEXTURE_2D, this.cubeTexture);
     //this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, this.mainCanvas.height / 2.5);
 	this.gl.uniform1i(this.crtShaderProgram.scanlinesUniform, 200);
     this.gl.uniform1f(this.crtShaderProgram.barrelUniform, 0.0);

@@ -102,7 +102,7 @@ var BlurFragmentShader = "\
         gl_FragColor = vec4(uClearColor.a * uClearColor.rgb + (1.0 - uClearColor.a) * fragmentColor.rgb / (1.0 + uBlurAmount * 4.0), 1.0);\
     }";
 
-// Another vertex shader with texture support
+// CRT emulation
 var CrtVertexShader = "\
     attribute vec4 aVertexPosition;\
     attribute vec2 aTextureCoord;\
@@ -116,7 +116,7 @@ var CrtVertexShader = "\
         vTextureCoord = aTextureCoord;\
     }";
 
-// Another fragment shader with texture support
+// CRT emulation
 var CrtFragmentShader = "\
     precision mediump float;\
     \
