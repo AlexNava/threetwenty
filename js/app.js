@@ -1,9 +1,9 @@
 var input = new InputMgr();
-var app = new webGLApp();
+var app = new WebGlMgr();
 
 // Redefinition of library functions: drawScene, animate
 
-app.drawScene = function() {
+app.displayFunc = function() {
     this.checkResize(this.mainCanvas, this.pMatrix);
 
     // draw scene on 1st FBO
@@ -144,7 +144,7 @@ app.drawScene = function() {
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
 }
 
-app.animate = function() {
+app.animateFunc = function() {
     var timeNow = new Date().getTime();
     if (this.timer.lastTime != 0) {
         var elapsed = timeNow - this.timer.lastTime;
@@ -192,4 +192,4 @@ app.animate = function() {
     this.timer.lastTime = timeNow;
 }
 
-app.tick();
+app.start();

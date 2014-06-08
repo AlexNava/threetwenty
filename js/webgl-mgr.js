@@ -1,9 +1,9 @@
-var webGLApp = function()
+var WebGlMgr = function()
 {
     this.setup();
 }
 
-webGLApp.prototype.setup = function()
+WebGlMgr.prototype.setup = function()
 {
     // Global timer
     this.timer = {
@@ -52,7 +52,7 @@ webGLApp.prototype.setup = function()
 
 }
 
-webGLApp.prototype.initGL = function() {
+WebGlMgr.prototype.initGL = function() {
     this.gl = this.mainCanvas.getContext("webgl") || this.mainCanvas.getContext("experimental-webgl");
     this.gl.viewportWidth = this.mainCanvas.width;
     this.gl.viewportHeight = this.mainCanvas.height;
@@ -68,7 +68,7 @@ webGLApp.prototype.initGL = function() {
     }
 }
 
-webGLApp.prototype.initBuffers = function() {
+WebGlMgr.prototype.initBuffers = function() {
     // Init matrices
     this.mvMatrix = mat4.create();
     this.pMatrix = mat4.create();
@@ -147,7 +147,7 @@ webGLApp.prototype.initBuffers = function() {
     this.screenCoordBuffer.numItems = 4;
 }
 
-webGLApp.prototype.initShaders = function() {
+WebGlMgr.prototype.initShaders = function() {
     // Init basic shader
     var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
@@ -301,7 +301,7 @@ webGLApp.prototype.initShaders = function() {
     this.crtShaderProgram.barrelUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uBarrelDistortion");
 }
 
-webGLApp.prototype.initOffscreenBuffer = function() {
+WebGlMgr.prototype.initOffscreenBuffer = function() {
     // Two separate FBOs
     this.rttFramebuffer1 = this.gl.createFramebuffer();
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
@@ -360,17 +360,17 @@ webGLApp.prototype.initOffscreenBuffer = function() {
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 }
 
-webGLApp.prototype.initTextures = function() {
+WebGlMgr.prototype.initTextures = function() {
     this.snoopTexture = this.gl.createTexture();
     var snoopImage = new Image();
-    var webGLAppContext = this;
+    var WebGlMgrContext = this;
     snoopImage.onload = function() {
-        webGLAppContext.handleTextureLoaded(snoopImage, webGLAppContext.snoopTexture);
+        WebGlMgrContext.handleTextureLoaded(snoopImage, WebGlMgrContext.snoopTexture);
     }
     snoopImage.src = "assets/SnoopDoge.jpg";
 }
 
-webGLApp.prototype.handleTextureLoaded = function(image, texture) {
+WebGlMgr.prototype.handleTextureLoaded = function(image, texture) {
     this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
     this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
@@ -383,7 +383,7 @@ webGLApp.prototype.handleTextureLoaded = function(image, texture) {
 var lastSizeW = 0;
 var lastSizeH = 0;
 
-webGLApp.prototype.checkResize = function(canvas, projMatrix) {
+WebGlMgr.prototype.checkResize = function(canvas, projMatrix) {
     //if ((canvas.width !== lastSizeW) || (canvas.height !== lastSizeH))
     //if ((document.body.clientWidth !== lastSizeW) || (document.body.clientHeight !== lastSizeH))
     if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
@@ -399,15 +399,24 @@ webGLApp.prototype.checkResize = function(canvas, projMatrix) {
 }
 
 // This should be redefined in the main application source file
-webGLApp.prototype.drawScene = function() {}
+WebGlMgr.prototype.startFunc = function() {}
 
 // This should be redefined in the main application source file
-webGLApp.prototype.animate = function() {}
+WebGlMgr.prototype.displayFunc = function() {}
 
-webGLApp.prototype.tick = function(timestamp) {
-    this.drawScene();
-    this.animate();
+// This should be redefined in the main application source file
+WebGlMgr.prototype.animateFunc = function() {}
+
+WebGlMgr.prototype.tick = function(timestamp) {
+    this.displayFunc();
+    this.animateFunc();
 
     // bind .tick() with the appropriate execution context
     requestAnimationFrame(this.tick.bind(this));
 }
+
+WebGlMgr.prototype.start = function() {
+    this.startFunc();
+    this.tick();
+}
+
