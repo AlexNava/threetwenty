@@ -1,9 +1,8 @@
-var InputMgr = function()
-{
+var InputMgr = function () {
     this.setup();
-}
+};
 
-InputMgr.prototype.setup = function() {
+InputMgr.prototype.setup = function () {
     this.keyPressed = new Array(0);
     this.touchPoints = new Array(0);
     this.gestureLeft = false;
@@ -12,26 +11,26 @@ InputMgr.prototype.setup = function() {
     this.gestureDown = false;
 
     window.addEventListener("keydown",
-        function(event) {
+        function (event) {
             this.keyPressed[event.keyCode] = true;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
-    );
+        );
 
     window.addEventListener("keyup",
-        function(event) {
+        function (event) {
             this.keyPressed[event.keyCode] = false;
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
-    );
+        );
 
     window.addEventListener("touchstart",
-        function(event) {
+        function (event) {
             event.preventDefault();
             var timeNow = new Date().getTime();
-            for (var i = 0; i < event.changedTouches.length; i++){
+            for (var i = 0; i < event.changedTouches.length; i++) {
                 this.touchPoints[event.changedTouches[i].identifier] = {
                     startX : event.changedTouches[i].clientX,
                     startY : event.changedTouches[i].clientY,
@@ -43,12 +42,12 @@ InputMgr.prototype.setup = function() {
             }
         }.bind(this),
         false
-    );
+        );
 
     window.addEventListener("touchmove",
-        function(event) {
+        function (event) {
             event.preventDefault();
-            for (var i = 0; i < event.changedTouches.length; i++){
+            for (var i = 0; i < event.changedTouches.length; i++) {
                 this.touchPoints[event.changedTouches[i].identifier].lastX = this.touchPoints[event.changedTouches[i].identifier].currentX;
                 this.touchPoints[event.changedTouches[i].identifier].lastY = this.touchPoints[event.changedTouches[i].identifier].currentY;
                 this.touchPoints[event.changedTouches[i].identifier].currentX = event.changedTouches[i].clientX;
@@ -60,7 +59,7 @@ InputMgr.prototype.setup = function() {
     );
 
     window.addEventListener("touchend",
-        function(event) {
+        function (event) {
             event.preventDefault();
             for (var i = 0; i < event.changedTouches.length; i++){
                 this.touchPoints[event.changedTouches[i].identifier] = {};
@@ -70,13 +69,13 @@ InputMgr.prototype.setup = function() {
     );
 
     window.addEventListener("focusout",
-        function(event) {
+        function (event) {
             this.keyPressed = new Array(0);
             this.touchPoints = new Array(0);
         }.bind(this),
 		false
     );
-}
+};
 
 InputMgr.prototype.pollTouchGestures = function() {
     // check motion on 4 directions
@@ -84,23 +83,23 @@ InputMgr.prototype.pollTouchGestures = function() {
     this.gestureRight = false;
     this.gestureUp = false;
     this.gestureDown = false;
-    if (this.touchPoints.length > 0){
-        if (this.touchPoints[0].relativeCheck === false){
+    if (this.touchPoints.length > 0) {
+        if (this.touchPoints[0].relativeCheck === false) {
             var deltaX = this.touchPoints[0].currentX - this.touchPoints[0].lastX;
             var deltaY = this.touchPoints[0].currentY - this.touchPoints[0].lastY;
-            if (deltaX < -2){
+            if (deltaX < -2) {
                 this.gestureLeft = true;
             }
-            if (deltaX > 2){
+            if (deltaX > 2) {
                 this.gestureRight = true;
             }
-            if (deltaY < -2){
+            if (deltaY < -2) {
                 this.gestureUp = true;
             }
-            if (deltaY > 2){
+            if (deltaY > 2) {
                 this.gestureDown = true;
             }
             this.touchPoints[0].relativeCheck = true;
         }
     }
-}
+};

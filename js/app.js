@@ -3,7 +3,7 @@ var app = new WebGlMgr();
 
 // Redefinition of library functions: drawScene, animate
 
-app.displayFunc = function() {
+app.displayFunc = function () {
     this.checkResize(this.mainCanvas, this.pMatrix);
 
     // draw scene on 1st FBO
@@ -92,8 +92,8 @@ app.displayFunc = function() {
     this.gl.disable(this.gl.DEPTH_TEST);
 
     // Setup orthographic matrices
-    var identityMv = mat4.create();
-    var orthoMatrix = mat4.create();
+    identityMv = mat4.create();
+    orthoMatrix = mat4.create();
     mat4.ortho(orthoMatrix, 0, this.X_RESOLUTION, 0, this.Y_RESOLUTION, -1, 1);
 
     this.gl.useProgram(this.textureShaderProgram);
@@ -142,12 +142,14 @@ app.displayFunc = function() {
     this.gl.vertexAttribPointer(this.crtShaderProgram.textureCoordAttribute, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
-}
+};
 
-app.animateFunc = function() {
+app.animateFunc = function () {
     var timeNow = new Date().getTime();
-    if (this.timer.lastTime != 0) {
-        var elapsed = timeNow - this.timer.lastTime;
+    var elapsed = 0;
+    
+    if (this.timer.lastTime !== 0) {
+        elapsed = timeNow - this.timer.lastTime;
     }
 
     // Update stuff based on timers and keys
@@ -159,15 +161,16 @@ app.animateFunc = function() {
         // left
 //        this.angle += elapsed * 60.0 * 0.001;
         this.blurShiftX -= elapsed * 4.0 * 0.001;
-        if (this.blurShiftX <= -5)
+        if (this.blurShiftX <= -5) {
             this.blurShiftX = -5;
-    }
-    else if ((input.keyPressed[39] === true) || (input.gestureRight === true)) {
+        }
+    } else if ((input.keyPressed[39] === true) || (input.gestureRight === true)) {
         // right
 //        this.angle -= elapsed * 60.0 * 0.001;
         this.blurShiftX += elapsed * 4.0 * 0.001;
-        if (this.blurShiftX >= 5)
+        if (this.blurShiftX >= 5) {
             this.blurShiftX = 5;
+        }
     }
 
     if ((input.keyPressed[38] === true) || (input.gestureUp === true)) {
@@ -176,20 +179,21 @@ app.animateFunc = function() {
 //        if (this.blurriness >= 1.5)
 //            this.blurriness = 1.5;
         this.blurShiftY += elapsed * 4.0 * 0.001;
-        if (this.blurShiftY >= 5)
+        if (this.blurShiftY >= 5) {
             this.blurShiftY = 5;
-    }
-    else if ((input.keyPressed[40] === true) || (input.gestureDown === true)) {
+        }
+    } else if ((input.keyPressed[40] === true) || (input.gestureDown === true)) {
         // down
 //        this.blurriness -= elapsed * 0.001;
 //        if (this.blurriness <= 0.0)
 //            this.blurriness = 0.0;
         this.blurShiftY -= elapsed * 4.0 * 0.001;
-        if (this.blurShiftY <= -5)
+        if (this.blurShiftY <= -5) {
             this.blurShiftY = -5;
+        }
     }
 
     this.timer.lastTime = timeNow;
-}
+};
 
 app.start();

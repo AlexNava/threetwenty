@@ -1,14 +1,12 @@
-var WebGlMgr = function()
-{
+var WebGlMgr = function () {
     this.setup();
-}
+};
 
-WebGlMgr.prototype.setup = function()
-{
+WebGlMgr.prototype.setup = function () {
     // Global timer
     this.timer = {
         lastTime: 0
-    }
+    };
 
     this.X_RESOLUTION = 320;
     this.Y_RESOLUTION = 240;
@@ -40,8 +38,7 @@ WebGlMgr.prototype.setup = function()
 
     try {
         this.initGL(this.mainCanvas);
-    }
-    catch (exception) {
+    } catch (exception) {
         alert('Error while booting WebGL: ' + exception);
     }
 
@@ -49,8 +46,7 @@ WebGlMgr.prototype.setup = function()
 
     this.mvMatrix = mat4.create();
     this.pMatrix = mat4.create();
-
-}
+};
 
 WebGlMgr.prototype.initGL = function() {
     this.gl = this.mainCanvas.getContext("webgl") || this.mainCanvas.getContext("experimental-webgl");
