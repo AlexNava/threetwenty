@@ -3,7 +3,12 @@ var app = new WebGlMgr();
 
 // Redefinition of library functions: drawScene, animate
 
-app.displayFunc = function () {
+var startFunc = function () {
+}
+
+var displayFunc = function (elapsed) {
+    animateFun(elapsed);
+    
     this.checkResize(this.mainCanvas, this.pMatrix);
 
     // draw scene on 1st FBO
@@ -126,6 +131,7 @@ app.displayFunc = function () {
     mat4.ortho(orthoMatrix, 0, this.X_RESOLUTION, 0, this.Y_RESOLUTION, -1, 1);
 
     //this.gl.useProgram(this.crtShaderProgram);
+    this.gl.useProgram(this.textureShaderProgram);
 
     this.gl.activeTexture(this.gl.TEXTURE0);
     this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
@@ -142,15 +148,9 @@ app.displayFunc = function () {
     this.gl.vertexAttribPointer(this.crtShaderProgram.textureCoordAttribute, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 
     this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
-};
+}.bind(app);
 
-app.animateFunc = function () {
-    var timeNow = new Date().getTime();
-    var elapsed = 0;
-    
-    if (this.timer.lastTime !== 0) {
-        elapsed = timeNow - this.timer.lastTime;
-    }
+var animateFun = function (elapsed) {
 
     // Update stuff based on timers and keys
     this.angle += 180.0 * 0.001;
@@ -192,8 +192,9 @@ app.animateFunc = function () {
             this.blurShiftY = -5;
         }
     }
+}.bind(app);
 
-    this.timer.lastTime = timeNow;
-};
-
+app.setStartFunc(startFunc);
+app.setDisplayFunc(displayFunc);
+app.init("MainCanvas", 320, 240);
 app.start();

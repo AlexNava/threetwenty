@@ -1,15 +1,34 @@
 var WebGlMgr = function () {
-    this.setup();
-};
-
-WebGlMgr.prototype.setup = function () {
-    // Global timer
+    this.X_RESOLUTION = 0;
+    this.Y_RESOLUTION = 0;
+    
+    this.startFunc = function() {};
+    this.displayFunc = function() {};
+    
+    // global timer
     this.timer = {
         lastTime: 0
     };
+};
 
-    this.X_RESOLUTION = 320;
-    this.Y_RESOLUTION = 240;
+WebGlMgr.prototype.setStartFunc = function(startFunction) {
+    this.startFunc = startFunction;
+}
+
+WebGlMgr.prototype.setDisplayFunc = function(displayFunction) {
+    this.displayFunc = displayFunction;
+}
+
+//// This should be redefined in the main application source file
+//WebGlMgr.prototype.startFunc = function() {}
+
+//// This should be redefined in the main application source file
+//WebGlMgr.prototype.displayFunc = function() {}
+
+WebGlMgr.prototype.init = function (canvasName, hResolution, vResolution) {
+
+    this.X_RESOLUTION = hResolution;
+    this.Y_RESOLUTION = vResolution;
 
     this.angle = 0.0;
     this.blurriness = 0.0;
@@ -34,7 +53,7 @@ WebGlMgr.prototype.setup = function () {
     this.rttTexture2 = null;
     this.rttRenderbuffer2 = null;
 
-    this.mainCanvas = $("#MainCanvas")[0];
+    this.mainCanvas = document.getElementById(canvasName);
 
     try {
         this.initGL(this.mainCanvas);
@@ -394,25 +413,26 @@ WebGlMgr.prototype.checkResize = function(canvas, projMatrix) {
     }
 }
 
-// This should be redefined in the main application source file
-WebGlMgr.prototype.startFunc = function() {}
-
-// This should be redefined in the main application source file
-WebGlMgr.prototype.displayFunc = function() {}
-
-// This should be redefined in the main application source file
-WebGlMgr.prototype.animateFunc = function() {}
-
-WebGlMgr.prototype.tick = function(timestamp) {
-    this.displayFunc();
-    this.animateFunc();
+WebGlMgr.prototype.tick = function() {
+    var timeNow = new Date().getTime();
+    var elapsed = 0;
+    
+    if (this.timer.lastTime !== 0) {
+        elapsed = timeNow - this.timer.lastTime;
+    }
+    this.timer.lastTime = timeNow;
+    
+    this.displayFunc(elapsed);
 
     // bind .tick() with the appropriate execution context
     requestAnimationFrame(this.tick.bind(this));
 }
 
 WebGlMgr.prototype.start = function() {
-    this.startFunc();
+    if (this.startFunc !== null) {
+        this.startFunc();
+    }
+    
     this.tick();
 }
 
