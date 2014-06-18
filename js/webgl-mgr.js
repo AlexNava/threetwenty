@@ -5,11 +5,43 @@ var WebGlMgr = function () {
     this.startFunc = function() {};
     this.displayFunc = function() {};
     
+    this.textures = [];
+    this.loadTexture = function(alias, fileName) {
+        var tempTexture = this.gl.createTexture();
+        var tempImage = new Image();
+        var WebGlMgrContext = this;
+        tempImage.onload = function() {
+            WebGlMgrContext.textureLoadHandler(alias, tempImage, tempTexture);
+        }
+        tempImage.src = fileName;
+    };
+
+    this.textureLoadHandler = function(alias, image, texture) {
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+        this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+        this.gl.generateMipmap(this.gl.TEXTURE_2D);
+        this.textures[alias] = texture;
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    };
+
+    this.useTexture = function(alias, textureUnit) {
+        if (textureUnit == undefined){
+            textureUnit = 0;
+        }
+        this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[alias]);
+    };
+
     // global timer
     this.timer = {
         lastTime: 0
     };
 };
+
+
 
 WebGlMgr.prototype.setStartFunc = function(startFunction) {
     this.startFunc = startFunction;
@@ -43,7 +75,7 @@ WebGlMgr.prototype.init = function (canvasName, hResolution, vResolution) {
     this.textureShaderProgram = null;
     this.crtShaderProgram = null;
 
-    this.snoopTexture = null;
+    //this.snoopTexture = null;
 
     this.rttFramebuffer1 = null;
     this.rttTexture1 = null;
@@ -376,13 +408,8 @@ WebGlMgr.prototype.initOffscreenBuffer = function() {
 }
 
 WebGlMgr.prototype.initTextures = function() {
-    this.snoopTexture = this.gl.createTexture();
-    var snoopImage = new Image();
-    var WebGlMgrContext = this;
-    snoopImage.onload = function() {
-        WebGlMgrContext.handleTextureLoaded(snoopImage, WebGlMgrContext.snoopTexture);
-    }
-    snoopImage.src = "assets/SnoopDoge.jpg";
+    this.loadTexture("snoop", "assets/SnoopDoge.jpg");
+    this.loadTexture("code", "assets/code64.png");
 }
 
 WebGlMgr.prototype.handleTextureLoaded = function(image, texture) {

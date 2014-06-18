@@ -75,8 +75,9 @@ var displayFunc = function (elapsed) {
 //    this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPosBuffer.numItems);
 
     this.gl.useProgram(this.textureShaderProgram);
-    this.gl.activeTexture(this.gl.TEXTURE0);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.snoopTexture);
+//    this.gl.activeTexture(this.gl.TEXTURE0);
+//    this.gl.bindTexture(this.gl.TEXTURE_2D, this.snoopTexture);
+    this.useTexture("snoop", 0);
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
 
     // Set shader matrices to those calculated
