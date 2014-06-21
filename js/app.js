@@ -4,12 +4,36 @@ var app = new WebGlMgr();
 // Redefinition of library functions: drawScene, animate
 
 var startFunc = function () {
-}
+
+    this.angle = 0.0;
+    this.blurriness = 0.0;
+    this.blurShiftX = 1.0;
+    this.blurShiftY = 1.0;
+
+    this.triangleVertexPosBuffer = null;
+    this.triangleVertexColBuffer = null;
+    this.screenVertexBuffer = null;
+    this.screenCoordBuffer = null;
+    this.basicShaderProgram = null;
+    this.textureShaderProgram = null;
+    this.crtShaderProgram = null;
+
+    //this.snoopTexture = null;
+
+    this.gl.enable(this.gl.DEPTH_TEST);
+
+    this.mvMatrix = mat4.create();
+    this.pMatrix = mat4.create();
+
+    this.initTextures();
+    this.initBuffers();
+    this.initShaders();
+    
+}.bind(app);
 
 var displayFunc = function (elapsed) {
     animateFun(elapsed);
-    
-    this.checkResize(this.mainCanvas, this.pMatrix);
+    checkResize(this.mainCanvas, this.pMatrix);
 
     // draw scene on 1st FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
@@ -77,7 +101,8 @@ var displayFunc = function (elapsed) {
     this.gl.useProgram(this.textureShaderProgram);
 //    this.gl.activeTexture(this.gl.TEXTURE0);
 //    this.gl.bindTexture(this.gl.TEXTURE_2D, this.snoopTexture);
-    this.useTexture("snoop", 0);
+    this.useTexture("snoop");
+    this.useTexture("code", 1);
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
 
     // Set shader matrices to those calculated
@@ -195,7 +220,25 @@ var animateFun = function (elapsed) {
     }
 }.bind(app);
 
+var lastSizeW = 0;
+var lastSizeH = 0;
+
+var checkResize = function(canvas, projMatrix) {
+    //if ((canvas.width !== lastSizeW) || (canvas.height !== lastSizeH))
+    //if ((document.body.clientWidth !== lastSizeW) || (document.body.clientHeight !== lastSizeH))
+    if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
+        lastSizeH = window.innerHeight;
+        lastSizeW = window.innerWidth;
+
+        canvas.width = lastSizeW;
+        canvas.height = lastSizeH;
+//        this.gl.viewport(0, 0, this.X_RESOLUTION, this.Y_RESOLUTION);
+//        mat4.identity(projMatrix);
+//        mat4.perspective(projMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
+    }
+};
+
+app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
-app.init("MainCanvas", 320, 240);
 app.start();
