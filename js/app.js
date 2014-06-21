@@ -4,12 +4,28 @@ var app = new WebGlMgr();
 // Redefinition of library functions: drawScene, animate
 
 var startFunc = function () {
-}
+
+    app.angle = 0.0;
+    app.blurriness = 0.0;
+    app.blurShiftX = 1.0;
+    app.blurShiftY = 1.0;
+
+    app.gl.enable(this.gl.DEPTH_TEST);
+
+    app.mvMatrix = mat4.create();
+    app.pMatrix = mat4.create();
+
+    initTextures();    
+};
+
+initTextures = function() {
+    app.loadTexture("snoop", "assets/SnoopDoge.jpg");
+    app.loadTexture("code", "assets/code64.png");
+};
 
 var displayFunc = function (elapsed) {
     animateFun(elapsed);
-    
-    this.checkResize(this.mainCanvas, this.pMatrix);
+    checkResize(this.mainCanvas, this.pMatrix);
 
     // draw scene on 1st FBO
     this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
@@ -77,7 +93,8 @@ var displayFunc = function (elapsed) {
     this.gl.useProgram(this.textureShaderProgram);
 //    this.gl.activeTexture(this.gl.TEXTURE0);
 //    this.gl.bindTexture(this.gl.TEXTURE_2D, this.snoopTexture);
-    this.useTexture("snoop", 0);
+    this.useTexture("snoop");
+    this.useTexture("code", 1);
     this.gl.uniform1i(this.textureShaderProgram.samplerUniform, 0);
 
     // Set shader matrices to those calculated
@@ -195,7 +212,20 @@ var animateFun = function (elapsed) {
     }
 }.bind(app);
 
+var lastSizeW = 0;
+var lastSizeH = 0;
+
+var checkResize = function(canvas, projMatrix) {
+    if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
+        lastSizeH = window.innerHeight;
+        lastSizeW = window.innerWidth;
+
+        canvas.width = lastSizeW;
+        canvas.height = lastSizeH;
+    }
+};
+
+app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
-app.init("MainCanvas", 320, 240);
 app.start();

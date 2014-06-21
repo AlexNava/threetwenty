@@ -1,10 +1,151 @@
 var WebGlMgr = function () {
+
+    this.mainCanvas = null;
     this.X_RESOLUTION = 0;
     this.Y_RESOLUTION = 0;
     
     this.startFunc = function() {};
     this.displayFunc = function() {};
+
+    this.setStartFunc = function(startFunction) {
+        this.startFunc = startFunction;
+    };
+
+    this.setDisplayFunc = function(displayFunction) {
+        this.displayFunc = displayFunction;
+    };
     
+    this.tick = function() {
+        var timeNow = new Date().getTime();
+        var elapsed = 0;
+
+        if (this.timer.lastTime !== 0) {
+            elapsed = timeNow - this.timer.lastTime;
+        }
+        this.timer.lastTime = timeNow;
+
+        this.displayFunc(elapsed);
+
+        requestAnimationFrame(this.tick.bind(this));
+    };
+
+    this.start = function() {
+        this.triangleVertexPosBuffer = null;
+        this.triangleVertexColBuffer = null;
+        this.screenVertexBuffer = null;
+        this.screenCoordBuffer = null;
+        this.basicShaderProgram = null;
+        this.textureShaderProgram = null;
+        this.crtShaderProgram = null;
+
+        this.initBuffers();
+        this.initShaders();
+
+        if (this.startFunc !== null) {
+            this.startFunc();
+        }
+
+        this.tick();
+    };
+    
+    // Initialization ------------------
+    this.init = function (canvasName, hResolution, vResolution) {
+
+        this.X_RESOLUTION = hResolution;
+        this.Y_RESOLUTION = vResolution;
+
+        this.mainCanvas = document.getElementById(canvasName);
+
+        try {
+            this.initGL(this.mainCanvas);
+        } catch (exception) {
+            alert('Error while booting WebGL: ' + exception);
+        }
+
+    };
+
+    this.initGL = function() {
+        this.gl = this.mainCanvas.getContext("webgl") || this.mainCanvas.getContext("experimental-webgl");
+        this.gl.viewportWidth = this.mainCanvas.width;
+        this.gl.viewportHeight = this.mainCanvas.height;
+
+        this.initOffscreenBuffers();
+
+        if (!this.gl)
+        {
+            alert("Could not initialise WebGL, sorry :-(");
+        }
+    };
+
+    // Builtin framebuffer objects -----
+    this.rttFramebuffer1 = null;
+    this.rttTexture1 = null;
+    this.rttRenderbuffer1 = null;
+
+    this.rttFramebuffer2 = null;
+    this.rttTexture2 = null;
+    this.rttRenderbuffer2 = null;
+
+    this.initOffscreenBuffers = function() {
+        // Two separate FBOs
+        this.rttFramebuffer1 = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
+        this.rttFramebuffer1.width = this.X_RESOLUTION;
+        this.rttFramebuffer1.height = this.Y_RESOLUTION;
+
+        // Two textures for color
+        // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
+        this.rttTexture1 = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture1);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer1.width, this.rttFramebuffer1.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+
+        // Two renderbuffers (for depth?)
+        this.rttRenderbuffer1 = this.gl.createRenderbuffer();
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer1);
+        this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer1.width, this.rttFramebuffer1.height);
+
+        // Bind to 1st FBO
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture1, 0);
+        this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer1);
+
+
+        // 2nd FBO
+        this.rttFramebuffer2 = this.gl.createFramebuffer();
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
+        this.rttFramebuffer2.width = this.X_RESOLUTION;
+        this.rttFramebuffer2.height = this.Y_RESOLUTION;
+
+        // 2nd texture
+        this.rttTexture2 = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+        this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+        this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer2.width, this.rttFramebuffer2.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+
+        // 2nd renderbuffer
+        this.rttRenderbuffer2 = this.gl.createRenderbuffer();
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer2);
+        this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer2.width, this.rttFramebuffer2.height);
+
+        // Bind to 2nd FBO
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture2, 0);
+        this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer2);
+
+        // Switch to default texture/renderbuff/framebuff
+        this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+        this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
+
+    // Texture utils -------------------
     this.textures = [];
     this.loadTexture = function(alias, fileName) {
         var tempTexture = this.gl.createTexture();
@@ -40,80 +181,6 @@ var WebGlMgr = function () {
         lastTime: 0
     };
 };
-
-
-
-WebGlMgr.prototype.setStartFunc = function(startFunction) {
-    this.startFunc = startFunction;
-}
-
-WebGlMgr.prototype.setDisplayFunc = function(displayFunction) {
-    this.displayFunc = displayFunction;
-}
-
-//// This should be redefined in the main application source file
-//WebGlMgr.prototype.startFunc = function() {}
-
-//// This should be redefined in the main application source file
-//WebGlMgr.prototype.displayFunc = function() {}
-
-WebGlMgr.prototype.init = function (canvasName, hResolution, vResolution) {
-
-    this.X_RESOLUTION = hResolution;
-    this.Y_RESOLUTION = vResolution;
-
-    this.angle = 0.0;
-    this.blurriness = 0.0;
-    this.blurShiftX = 1.0;
-    this.blurShiftY = 1.0;
-
-    this.triangleVertexPosBuffer = null;
-    this.triangleVertexColBuffer = null;
-    this.screenVertexBuffer = null;
-    this.screenCoordBuffer = null;
-    this.basicShaderProgram = null;
-    this.textureShaderProgram = null;
-    this.crtShaderProgram = null;
-
-    //this.snoopTexture = null;
-
-    this.rttFramebuffer1 = null;
-    this.rttTexture1 = null;
-    this.rttRenderbuffer1 = null;
-
-    this.rttFramebuffer2 = null;
-    this.rttTexture2 = null;
-    this.rttRenderbuffer2 = null;
-
-    this.mainCanvas = document.getElementById(canvasName);
-
-    try {
-        this.initGL(this.mainCanvas);
-    } catch (exception) {
-        alert('Error while booting WebGL: ' + exception);
-    }
-
-    this.gl.enable(this.gl.DEPTH_TEST);
-
-    this.mvMatrix = mat4.create();
-    this.pMatrix = mat4.create();
-};
-
-WebGlMgr.prototype.initGL = function() {
-    this.gl = this.mainCanvas.getContext("webgl") || this.mainCanvas.getContext("experimental-webgl");
-    this.gl.viewportWidth = this.mainCanvas.width;
-    this.gl.viewportHeight = this.mainCanvas.height;
-
-    this.initTextures();
-    this.initBuffers();
-    this.initShaders();
-    this.initOffscreenBuffer();
-
-    if (!this.gl)
-    {
-        alert("Could not initialise WebGL, sorry :-(");
-    }
-}
 
 WebGlMgr.prototype.initBuffers = function() {
     // Init matrices
@@ -192,7 +259,7 @@ WebGlMgr.prototype.initBuffers = function() {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
     this.screenCoordBuffer.itemSize = 2;
     this.screenCoordBuffer.numItems = 4;
-}
+};
 
 WebGlMgr.prototype.initShaders = function() {
     // Init basic shader
@@ -346,120 +413,5 @@ WebGlMgr.prototype.initShaders = function() {
     this.crtShaderProgram.samplerUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uSampler");
     this.crtShaderProgram.scanlinesUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uScanlines");
     this.crtShaderProgram.barrelUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uBarrelDistortion");
-}
-
-WebGlMgr.prototype.initOffscreenBuffer = function() {
-    // Two separate FBOs
-    this.rttFramebuffer1 = this.gl.createFramebuffer();
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
-    this.rttFramebuffer1.width = this.X_RESOLUTION;
-    this.rttFramebuffer1.height = this.Y_RESOLUTION;
-
-    // Two textures for color
-    // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
-    this.rttTexture1 = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture1);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer1.width, this.rttFramebuffer1.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-
-    // Two renderbuffers (for depth?)
-    this.rttRenderbuffer1 = this.gl.createRenderbuffer();
-    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer1);
-    this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer1.width, this.rttFramebuffer1.height);
-
-    // Bind to 1st FBO
-    this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture1, 0);
-    this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer1);
-
-
-    // 2nd FBO
-    this.rttFramebuffer2 = this.gl.createFramebuffer();
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
-    this.rttFramebuffer2.width = this.X_RESOLUTION;
-    this.rttFramebuffer2.height = this.Y_RESOLUTION;
-
-    // 2nd texture
-    this.rttTexture2 = this.gl.createTexture();
-    this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer2.width, this.rttFramebuffer2.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-
-    // 2nd renderbuffer
-    this.rttRenderbuffer2 = this.gl.createRenderbuffer();
-    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer2);
-    this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer2.width, this.rttFramebuffer2.height);
-
-    // Bind to 2nd FBO
-    this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture2, 0);
-    this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer2);
-
-    // Switch to default texture/renderbuff/framebuff
-    this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-    this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
-    this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-}
-
-WebGlMgr.prototype.initTextures = function() {
-    this.loadTexture("snoop", "assets/SnoopDoge.jpg");
-    this.loadTexture("code", "assets/code64.png");
-}
-
-WebGlMgr.prototype.handleTextureLoaded = function(image, texture) {
-    this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
-    this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
-    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-    this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-    this.gl.generateMipmap(this.gl.TEXTURE_2D);
-    this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-}
-
-var lastSizeW = 0;
-var lastSizeH = 0;
-
-WebGlMgr.prototype.checkResize = function(canvas, projMatrix) {
-    //if ((canvas.width !== lastSizeW) || (canvas.height !== lastSizeH))
-    //if ((document.body.clientWidth !== lastSizeW) || (document.body.clientHeight !== lastSizeH))
-    if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
-        lastSizeH = window.innerHeight;
-        lastSizeW = window.innerWidth;
-
-        canvas.width = lastSizeW;
-        canvas.height = lastSizeH;
-//        this.gl.viewport(0, 0, this.X_RESOLUTION, this.Y_RESOLUTION);
-//        mat4.identity(projMatrix);
-//        mat4.perspective(projMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
-    }
-}
-
-WebGlMgr.prototype.tick = function() {
-    var timeNow = new Date().getTime();
-    var elapsed = 0;
-    
-    if (this.timer.lastTime !== 0) {
-        elapsed = timeNow - this.timer.lastTime;
-    }
-    this.timer.lastTime = timeNow;
-    
-    this.displayFunc(elapsed);
-
-    // bind .tick() with the appropriate execution context
-    requestAnimationFrame(this.tick.bind(this));
-}
-
-WebGlMgr.prototype.start = function() {
-    if (this.startFunc !== null) {
-        this.startFunc();
-    }
-    
-    this.tick();
-}
+};
 
