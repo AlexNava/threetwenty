@@ -16,7 +16,7 @@ InputMgr.prototype.setup = function () {
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
-        );
+    );
 
     window.addEventListener("keyup",
         function (event) {
@@ -24,7 +24,7 @@ InputMgr.prototype.setup = function () {
             //console.log("keyboard event: key pressed " + event.keyCode);
         }.bind(this),
         true
-        );
+    );
 
     window.addEventListener("touchstart",
         function (event) {
@@ -38,11 +38,10 @@ InputMgr.prototype.setup = function () {
                 };
                 this.touchPoints[event.changedTouches[i].identifier].currentX = this.touchPoints[event.changedTouches[i].identifier].startX;
                 this.touchPoints[event.changedTouches[i].identifier].currentY = this.touchPoints[event.changedTouches[i].identifier].startY;
-
             }
         }.bind(this),
         false
-        );
+    );
 
     window.addEventListener("touchmove",
         function (event) {
@@ -73,7 +72,7 @@ InputMgr.prototype.setup = function () {
             this.keyPressed = new Array(0);
             this.touchPoints = new Array(0);
         }.bind(this),
-		false
+        false
     );
 };
 

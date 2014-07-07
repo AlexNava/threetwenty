@@ -30,17 +30,6 @@ var WebGlMgr = function () {
     };
 
     this.start = function() {
-        this.triangleVertexPosBuffer = null;
-        this.triangleVertexColBuffer = null;
-        this.screenVertexBuffer = null;
-        this.screenCoordBuffer = null;
-        this.basicShaderProgram = null;
-        this.textureShaderProgram = null;
-        this.crtShaderProgram = null;
-
-        this.initBuffers();
-        this.initShaders();
-
         if (this.startFunc !== null) {
             this.startFunc();
         }
@@ -50,7 +39,6 @@ var WebGlMgr = function () {
     
     // Initialization ------------------
     this.init = function (canvasName, hResolution, vResolution) {
-
         this.X_RESOLUTION = hResolution;
         this.Y_RESOLUTION = vResolution;
 
@@ -62,6 +50,26 @@ var WebGlMgr = function () {
             alert('Error while booting WebGL: ' + exception);
         }
 
+        // Builtin framebuffer objects -----
+        this.rttFramebuffer1 = null;
+        this.rttTexture1 = null;
+        this.rttRenderbuffer1 = null;
+
+        this.rttFramebuffer2 = null;
+        this.rttTexture2 = null;
+        this.rttRenderbuffer2 = null;
+
+        this.triangleVertexPosBuffer = null;
+        this.triangleVertexColBuffer = null;
+        this.screenVertexBuffer = null;
+        this.screenCoordBuffer = null;
+        this.basicShaderProgram = null;
+        this.textureShaderProgram = null;
+        this.crtShaderProgram = null;
+
+        this.initOffscreenBuffers();
+        this.initBuffers();
+        this.initShaders();
     };
 
     this.initGL = function() {
@@ -69,22 +77,11 @@ var WebGlMgr = function () {
         this.gl.viewportWidth = this.mainCanvas.width;
         this.gl.viewportHeight = this.mainCanvas.height;
 
-        this.initOffscreenBuffers();
-
         if (!this.gl)
         {
             alert("Could not initialise WebGL, sorry :-(");
         }
     };
-
-    // Builtin framebuffer objects -----
-    this.rttFramebuffer1 = null;
-    this.rttTexture1 = null;
-    this.rttRenderbuffer1 = null;
-
-    this.rttFramebuffer2 = null;
-    this.rttTexture2 = null;
-    this.rttRenderbuffer2 = null;
 
     this.initOffscreenBuffers = function() {
         // Two separate FBOs
