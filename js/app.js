@@ -171,46 +171,46 @@ var displayFunc = function (elapsed) {
 var animateFun = function (elapsed) {
 
     // Update stuff based on timers and keys
-    this.angle += 180.0 * 0.001;
+    app.angle += 180.0 * 0.001;
 
     input.pollTouchGestures();
 
     if ((input.keyPressed[37] === true) || (input.gestureLeft === true)) {
         // left
-//        this.angle += elapsed * 60.0 * 0.001;
-        this.blurShiftX -= elapsed * 4.0 * 0.001;
-        if (this.blurShiftX <= -5) {
-            this.blurShiftX = -5;
+//        app.angle += elapsed * 60.0 * 0.001;
+        app.blurShiftX -= elapsed * 4.0 * 0.001;
+        if (app.blurShiftX <= -5) {
+            app.blurShiftX = -5;
         }
     } else if ((input.keyPressed[39] === true) || (input.gestureRight === true)) {
         // right
-//        this.angle -= elapsed * 60.0 * 0.001;
-        this.blurShiftX += elapsed * 4.0 * 0.001;
-        if (this.blurShiftX >= 5) {
-            this.blurShiftX = 5;
+//        app.angle -= elapsed * 60.0 * 0.001;
+        app.blurShiftX += elapsed * 4.0 * 0.001;
+        if (app.blurShiftX >= 5) {
+            app.blurShiftX = 5;
         }
     }
 
     if ((input.keyPressed[38] === true) || (input.gestureUp === true)) {
         // up
-//        this.blurriness += elapsed * 0.001;
-//        if (this.blurriness >= 1.5)
-//            this.blurriness = 1.5;
-        this.blurShiftY += elapsed * 4.0 * 0.001;
-        if (this.blurShiftY >= 5) {
-            this.blurShiftY = 5;
+//        app.blurriness += elapsed * 0.001;
+//        if (app.blurriness >= 1.5)
+//            app.blurriness = 1.5;
+        app.blurShiftY += elapsed * 4.0 * 0.001;
+        if (app.blurShiftY >= 5) {
+            app.blurShiftY = 5;
         }
     } else if ((input.keyPressed[40] === true) || (input.gestureDown === true)) {
         // down
-//        this.blurriness -= elapsed * 0.001;
-//        if (this.blurriness <= 0.0)
-//            this.blurriness = 0.0;
-        this.blurShiftY -= elapsed * 4.0 * 0.001;
-        if (this.blurShiftY <= -5) {
-            this.blurShiftY = -5;
+//        app.blurriness -= elapsed * 0.001;
+//        if (app.blurriness <= 0.0)
+//            app.blurriness = 0.0;
+        app.blurShiftY -= elapsed * 4.0 * 0.001;
+        if (app.blurShiftY <= -5) {
+            app.blurShiftY = -5;
         }
     }
-}.bind(app);
+};
 
 var lastSizeW = 0;
 var lastSizeH = 0;

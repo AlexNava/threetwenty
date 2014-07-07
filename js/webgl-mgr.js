@@ -30,6 +30,15 @@ var WebGlMgr = function () {
     };
 
     this.start = function() {
+        // Builtin framebuffer objects -----
+        this.rttFramebuffer1 = null;
+        this.rttTexture1 = null;
+        this.rttRenderbuffer1 = null;
+
+        this.rttFramebuffer2 = null;
+        this.rttTexture2 = null;
+        this.rttRenderbuffer2 = null;
+
         this.triangleVertexPosBuffer = null;
         this.triangleVertexColBuffer = null;
         this.screenVertexBuffer = null;
@@ -38,6 +47,7 @@ var WebGlMgr = function () {
         this.textureShaderProgram = null;
         this.crtShaderProgram = null;
 
+        this.initOffscreenBuffers();
         this.initBuffers();
         this.initShaders();
 
@@ -69,22 +79,11 @@ var WebGlMgr = function () {
         this.gl.viewportWidth = this.mainCanvas.width;
         this.gl.viewportHeight = this.mainCanvas.height;
 
-        this.initOffscreenBuffers();
-
         if (!this.gl)
         {
             alert("Could not initialise WebGL, sorry :-(");
         }
     };
-
-    // Builtin framebuffer objects -----
-    this.rttFramebuffer1 = null;
-    this.rttTexture1 = null;
-    this.rttRenderbuffer1 = null;
-
-    this.rttFramebuffer2 = null;
-    this.rttTexture2 = null;
-    this.rttRenderbuffer2 = null;
 
     this.initOffscreenBuffers = function() {
         // Two separate FBOs
