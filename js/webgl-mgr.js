@@ -3,7 +3,7 @@ var WebGlMgr = function () {
     this.mainCanvas = null;
     this.X_RESOLUTION = 0;
     this.Y_RESOLUTION = 0;
-    
+
     this.startFunc = function() {};
     this.displayFunc = function() {};
 
@@ -14,7 +14,7 @@ var WebGlMgr = function () {
     this.setDisplayFunc = function(displayFunction) {
         this.displayFunc = displayFunction;
     };
-    
+
     this.tick = function() {
         var timeNow = new Date().getTime();
         var elapsed = 0;
@@ -36,7 +36,7 @@ var WebGlMgr = function () {
 
         this.tick();
     };
-    
+
     // Initialization ------------------
     this.init = function (canvasName, hResolution, vResolution) {
         this.X_RESOLUTION = hResolution;
@@ -140,6 +140,34 @@ var WebGlMgr = function () {
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
         this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    }
+
+    // Shader utils --------------------
+    this.shaders = [];
+    this.loadShader = function(alias, vertexFile, fragmentFile) {
+        var vertexSource = "", fragmentSource = "";
+
+        $.get(vertexFile,
+            function(data) {
+                vertexSource = data;
+
+                // load fragment source right after vertex source
+                $.get(fragmentFile,
+                    function(data) {
+                        fragmentSource = data;
+
+                        sourcesLoaded();
+                    },
+                    "text"
+                );
+            },
+            "text"
+        );
+
+        var sourcesLoaded = function() {
+            //alert("all loaded");
+        }
+
     }
 
     // Texture utils -------------------
@@ -281,8 +309,8 @@ WebGlMgr.prototype.initShaders = function() {
     this.gl.linkProgram(this.basicShaderProgram);
 
     // Init basic texture shader
-    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
 
     this.gl.shaderSource(vertexShader, BasicTextureVertexShader);
     this.gl.compileShader(vertexShader);
@@ -302,8 +330,8 @@ WebGlMgr.prototype.initShaders = function() {
     this.gl.linkProgram(this.textureShaderProgram);
 
     // Init blur shader
-    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
 
     this.gl.shaderSource(vertexShader, BlurVertexShader);
     this.gl.compileShader(vertexShader);
@@ -323,8 +351,8 @@ WebGlMgr.prototype.initShaders = function() {
     this.gl.linkProgram(this.blurShaderProgram);
 
     // Init CRT shader
-    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
 
     this.gl.shaderSource(vertexShader, CrtVertexShader);
     this.gl.compileShader(vertexShader);
@@ -351,7 +379,7 @@ WebGlMgr.prototype.initShaders = function() {
         throw "Could not initialise shaders";
     }
 
-    // Set uniforms
+    // Set uniforms and attributes
     // Basic shader
     this.gl.useProgram(this.basicShaderProgram);
 

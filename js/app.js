@@ -4,7 +4,6 @@ var app = new WebGlMgr();
 // Redefinition of library functions: drawScene, animate
 
 var startFunc = function () {
-
     app.angle = 0.0;
     app.blurriness = 0.0;
     app.blurShiftX = 1.0;
@@ -15,12 +14,17 @@ var startFunc = function () {
     app.mvMatrix = mat4.create();
     app.pMatrix = mat4.create();
 
-    initTextures();    
+    initTextures();
+    initShaders();
 };
 
 initTextures = function() {
-    app.loadTexture("snoop", "assets/SnoopDoge.jpg");
-    app.loadTexture("code", "assets/code64.png");
+    app.loadTexture("snoop", "images/SnoopDoge.jpg");
+    app.loadTexture("code", "images/code64.png");
+};
+
+initShaders = function() {
+    app.loadShader("blur", "shaders/blurVs.c", "shaders/blurFs.c");
 };
 
 var displayFunc = function (elapsed) {
