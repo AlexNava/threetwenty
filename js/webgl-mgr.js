@@ -140,11 +140,36 @@ var WebGlMgr = function () {
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
         this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
-    }
+    };
 
     // Shader utils --------------------
     this.shaders = [];
-    this.loadShader = function(alias, vertexFile, fragmentFile) {
+
+    this.loadShaderSources = function(shaderAlias, vertexSource, fragmentSource) {
+        var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
+        var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
+
+        this.gl.shaderSource(vertexShader, vertexSource);
+        this.gl.compileShader(vertexShader);
+        if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
+            alert("Error compiling vertex shader: " + vertexFile + "\n" + this.gl.getShaderInfoLog(vertexShader));
+        }
+
+        this.gl.shaderSource(fragmentShader, fragmentSource);
+        this.gl.compileShader(fragmentShader);
+        if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
+            alert("Error compiling fragment shader: " + fragmentFile + "\n" + this.gl.getShaderInfoLog(fragmentShader));
+        }
+
+        var shaderProgram = this.gl.createProgram();
+        this.gl.attachShader(shaderProgram, vertexShader);
+        this.gl.attachShader(shaderProgram, fragmentShader);
+        this.gl.linkProgram(shaderProgram);
+        
+        this.shaders[shaderAlias] = shaderProgram;
+    };
+
+    this.loadShaderFiles = function(shaderAlias, vertexFile, fragmentFile) {
         var vertexSource = "", fragmentSource = "";
 
         $.get(vertexFile,
@@ -156,19 +181,14 @@ var WebGlMgr = function () {
                     function(data) {
                         fragmentSource = data;
 
-                        sourcesLoaded();
-                    },
+                        this.loadShaderSources(shaderAlias, vertexSource, fragmentSource);
+                    }.bind(this),
                     "text"
                 );
-            },
+            }.bind(this),
             "text"
         );
-
-        var sourcesLoaded = function() {
-            //alert("all loaded");
-        }
-
-    }
+    };
 
     // Texture utils -------------------
     this.textures = [];

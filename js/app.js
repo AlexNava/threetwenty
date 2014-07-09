@@ -24,7 +24,7 @@ initTextures = function() {
 };
 
 initShaders = function() {
-    app.loadShader("blur", "shaders/blurVs.c", "shaders/blurFs.c");
+    app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c");
 };
 
 var displayFunc = function (elapsed) {
@@ -231,5 +231,5 @@ var checkResize = function(canvas, projMatrix) {
 
 app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
-app.setDisplayFunc(displayFunc);
+//app.setDisplayFunc(displayFunc);
 app.start();
