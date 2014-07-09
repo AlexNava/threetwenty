@@ -145,7 +145,7 @@ var WebGlMgr = function () {
     // Shader utils --------------------
     this.shaders = [];
 
-    this.loadShaderSources = function(shaderAlias, vertexSource, fragmentSource) {
+    this.loadShaderSources = function(shaderName, vertexSource, fragmentSource) {
         var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
         var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
 
@@ -166,10 +166,11 @@ var WebGlMgr = function () {
         this.gl.attachShader(shaderProgram, fragmentShader);
         this.gl.linkProgram(shaderProgram);
         
-        this.shaders[shaderAlias] = shaderProgram;
+        this.shaders[shaderName] = shaderProgram;
+        this.shaders[shaderName].linked = true;
     };
 
-    this.loadShaderFiles = function(shaderAlias, vertexFile, fragmentFile) {
+    this.loadShaderFiles = function(shaderName, vertexFile, fragmentFile, completedFunc) {
         var vertexSource = "", fragmentSource = "";
 
         $.get(vertexFile,
@@ -181,7 +182,8 @@ var WebGlMgr = function () {
                     function(data) {
                         fragmentSource = data;
 
-                        this.loadShaderSources(shaderAlias, vertexSource, fragmentSource);
+                        this.loadShaderSources(shaderName, vertexSource, fragmentSource);
+                        completedFunc();
                     }.bind(this),
                     "text"
                 );
@@ -189,36 +191,61 @@ var WebGlMgr = function () {
             "text"
         );
     };
+    
+    this.shaderAttributes = function(shaderName, attributesList) {
+        this.gl.useProgram(this.shaders[shaderName]);
+        
+        for (var i = 0; i <attributesList.length; i++) {
+            this.shaders[shaderName][attributesList[i]] = this.gl.getAttribLocation(this.shaders[shaderName], attributesList[i]);
+        }
+    };
+    
+    this.shaderAttributeArrays = function(shaderName, attributeArraysList) {
+        this.gl.useProgram(this.shaders[shaderName]);
+        
+        for (var i = 0; i <attributeArraysList.length; i++) {
+            this.shaders[shaderName][attributeArraysList[i]] = this.gl.getAttribLocation(this.shaders[shaderName], attributeArraysList[i]);
+            this.gl.enableVertexAttribArray(this.shaders[shaderName][attributeArraysList[i]]);
+        }
+    };
+    
+    this.shaderUniforms = function(shaderName, uniformsList) {
+        this.gl.useProgram(this.shaders[shaderName]);
+        
+        for (var i = 0; i <uniformsList.length; i++) {
+            this.shaders[shaderName][uniformsList[i]] = this.gl.getUniformLocation(this.shaders[shaderName], uniformsList[i]);
+        }
+    }
 
     // Texture utils -------------------
     this.textures = [];
-    this.loadTexture = function(alias, fileName) {
+    this.loadTexture = function(textureName, fileName) {
         var tempTexture = this.gl.createTexture();
         var tempImage = new Image();
         var WebGlMgrContext = this;
         tempImage.onload = function() {
-            WebGlMgrContext.textureLoadHandler(alias, tempImage, tempTexture);
+            WebGlMgrContext.textureLoadHandler(textureName, tempImage, tempTexture);
         }
         tempImage.src = fileName;
     };
 
-    this.textureLoadHandler = function(alias, image, texture) {
+    this.textureLoadHandler = function(textureName, image, texture) {
         this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
         this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
         this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
         this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
         this.gl.generateMipmap(this.gl.TEXTURE_2D);
-        this.textures[alias] = texture;
+        this.textures[textureName] = texture;
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
     };
 
-    this.useTexture = function(alias, textureUnit) {
+    this.useTexture = function(textureName, textureUnit) {
         if (textureUnit == undefined){
             textureUnit = 0;
         }
         this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
-        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[alias]);
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureName]);
     };
 
     // global timer
@@ -349,27 +376,6 @@ WebGlMgr.prototype.initShaders = function() {
     this.gl.attachShader(this.textureShaderProgram, fragmentShader);
     this.gl.linkProgram(this.textureShaderProgram);
 
-    // Init blur shader
-    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-    this.gl.shaderSource(vertexShader, BlurVertexShader);
-    this.gl.compileShader(vertexShader);
-    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(vertexShader));
-    }
-
-    this.gl.shaderSource(fragmentShader, BlurFragmentShader);
-    this.gl.compileShader(fragmentShader);
-    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(fragmentShader));
-    }
-
-    this.blurShaderProgram = this.gl.createProgram();
-    this.gl.attachShader(this.blurShaderProgram, vertexShader);
-    this.gl.attachShader(this.blurShaderProgram, fragmentShader);
-    this.gl.linkProgram(this.blurShaderProgram);
-
     // Init CRT shader
     vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
     fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
@@ -394,7 +400,6 @@ WebGlMgr.prototype.initShaders = function() {
     // Check shaders
     if (!this.gl.getProgramParameter(this.basicShaderProgram, this.gl.LINK_STATUS)
         || !this.gl.getProgramParameter(this.textureShaderProgram, this.gl.LINK_STATUS)
-        || !this.gl.getProgramParameter(this.blurShaderProgram, this.gl.LINK_STATUS)
         || !this.gl.getProgramParameter(this.crtShaderProgram, this.gl.LINK_STATUS)) {
         throw "Could not initialise shaders";
     }
@@ -426,24 +431,6 @@ WebGlMgr.prototype.initShaders = function() {
     this.textureShaderProgram.samplerUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uSampler");
     this.textureShaderProgram.textureWUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureW");
     this.textureShaderProgram.textureHUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureH");
-
-    // Blur
-    this.gl.useProgram(this.blurShaderProgram);
-
-    this.blurShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.blurShaderProgram, "aVertexPosition");
-    this.gl.enableVertexAttribArray(this.blurShaderProgram.vertexPositionAttribute);
-
-    this.blurShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.blurShaderProgram, "aTextureCoord");
-    this.gl.enableVertexAttribArray(this.blurShaderProgram.textureCoordAttribute);
-
-    this.blurShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uPMatrix");
-    this.blurShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uMVMatrix");
-    this.blurShaderProgram.samplerUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uSampler");
-    this.blurShaderProgram.textureWUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uTextureW");
-    this.blurShaderProgram.textureHUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uTextureH");
-    this.blurShaderProgram.blurAmountUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uBlurAmount");
-    this.blurShaderProgram.blurShiftUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uBlurShift");
-    this.blurShaderProgram.clearColorUniform = this.gl.getUniformLocation(this.blurShaderProgram, "uClearColor");
 
     // CRT
     this.gl.useProgram(this.crtShaderProgram);

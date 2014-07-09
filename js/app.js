@@ -24,7 +24,11 @@ initTextures = function() {
 };
 
 initShaders = function() {
-    app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c");
+    // Blur
+    app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c", function() {
+        app.shaderAttributeArrays("blur", ["aVertexPosition", "aTextureCoord"]);
+        app.shaderUniforms("blur", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH", "uBlurAmount", "uBlurShift", "uClearColor"]);
+    });    
 };
 
 var displayFunc = function (elapsed) {
@@ -47,27 +51,28 @@ var displayFunc = function (elapsed) {
     var orthoMatrix = mat4.create();
     mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
 
-    app.gl.useProgram(app.blurShaderProgram);
+    if (app.shaders["blur"] !== undefined) {
+        app.gl.useProgram(app.shaders["blur"]);
 
-    app.gl.activeTexture(app.gl.TEXTURE0);
-    app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
-    app.gl.uniform1i(app.blurShaderProgram.samplerUniform, 0);
-    app.gl.uniform1f(app.blurShaderProgram.textureWUniform, app.X_RESOLUTION);
-    app.gl.uniform1f(app.blurShaderProgram.textureHUniform, app.Y_RESOLUTION);
-    app.gl.uniform1f(app.blurShaderProgram.blurAmountUniform, 0.25);
-    app.gl.uniform2f(app.blurShaderProgram.blurShiftUniform, app.blurShiftX, app.blurShiftY);
-    app.gl.uniform4f(app.blurShaderProgram.clearColorUniform, 0.5, 0.5, 0.5, 0.05);
+        app.gl.activeTexture(app.gl.TEXTURE0);
+        app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+        app.gl.uniform1i(app.shaders["blur"].uSampler, 0);
+        app.gl.uniform1f(app.shaders["blur"].uTextureW, app.X_RESOLUTION);
+        app.gl.uniform1f(app.shaders["blur"].uTextureH, app.Y_RESOLUTION);
+        app.gl.uniform1f(app.shaders["blur"].uBlurAmount, 0.25);
+        app.gl.uniform2f(app.shaders["blur"].uBlurShift, app.blurShiftX, app.blurShiftY);
+        app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.05);
 
-    app.gl.uniformMatrix4fv(app.blurShaderProgram.mvMatrixUniform, false, identityMv);
-    app.gl.uniformMatrix4fv(app.blurShaderProgram.pMatrixUniform, false, orthoMatrix);
+        app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
+        app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, orthoMatrix);
 
-    // Draw stuff
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-    app.gl.vertexAttribPointer(app.blurShaderProgram.vertexPositionAttribute, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-    app.gl.vertexAttribPointer(app.blurShaderProgram.textureCoordAttribute, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-
-    app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+        // Draw stuff
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
+        app.gl.vertexAttribPointer(app.shaders["blur"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+        app.gl.vertexAttribPointer(app.shaders["blur"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+        app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+    }
 
     app.gl.enable(app.gl.DEPTH_TEST);
     app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
@@ -231,5 +236,5 @@ var checkResize = function(canvas, projMatrix) {
 
 app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
-//app.setDisplayFunc(displayFunc);
+app.setDisplayFunc(displayFunc);
 app.start();
