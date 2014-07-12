@@ -63,9 +63,6 @@ var WebGlMgr = function () {
         this.triangleVertexColBuffer = null;
         this.screenVertexBuffer = null;
         this.screenCoordBuffer = null;
-        this.basicShaderProgram = null;
-        this.textureShaderProgram = null;
-        this.crtShaderProgram = null;
 
         this.initOffscreenBuffers();
         this.initBuffers();
@@ -166,6 +163,10 @@ var WebGlMgr = function () {
         this.gl.attachShader(shaderProgram, fragmentShader);
         this.gl.linkProgram(shaderProgram);
         
+        if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
+            alert("Error linking shader program:\n" + shaderProgram.error);
+        }
+
         this.shaders[shaderName] = shaderProgram;
         this.shaders[shaderName].linked = true;
     };
@@ -333,117 +334,15 @@ WebGlMgr.prototype.initBuffers = function() {
     this.screenCoordBuffer.numItems = 4;
 };
 
-WebGlMgr.prototype.initShaders = function() {
-    // Init basic shader
-    var vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    var fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-    this.gl.shaderSource(vertexShader, BasicVertexShader);
-    this.gl.compileShader(vertexShader);
-    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(vertexShader));
-    }
-
-    this.gl.shaderSource(fragmentShader, BasicFragmentShader);
-    this.gl.compileShader(fragmentShader);
-    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(fragmentShader));
-    }
-
-    this.basicShaderProgram = this.gl.createProgram();
-    this.gl.attachShader(this.basicShaderProgram, vertexShader);
-    this.gl.attachShader(this.basicShaderProgram, fragmentShader);
-    this.gl.linkProgram(this.basicShaderProgram);
+WebGlMgr.prototype.initShaders = function() {    
+    // Init basic gouraud shader
+    this.loadShaderSources("base", BasicVertexShader, BasicFragmentShader);
+    this.shaderAttributeArrays("base", ["aVertexPosition", "aVertexColor"]);
+    this.shaderUniforms("base", ["uPMatrix", "uMVMatrix"]);
 
     // Init basic texture shader
-    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-    this.gl.shaderSource(vertexShader, BasicTextureVertexShader);
-    this.gl.compileShader(vertexShader);
-    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(vertexShader));
-    }
-
-    this.gl.shaderSource(fragmentShader, BasicTextureFragmentShader);
-    this.gl.compileShader(fragmentShader);
-    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(fragmentShader));
-    }
-
-    this.textureShaderProgram = this.gl.createProgram();
-    this.gl.attachShader(this.textureShaderProgram, vertexShader);
-    this.gl.attachShader(this.textureShaderProgram, fragmentShader);
-    this.gl.linkProgram(this.textureShaderProgram);
-
-    // Init CRT shader
-    vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-    fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-    this.gl.shaderSource(vertexShader, CrtVertexShader);
-    this.gl.compileShader(vertexShader);
-    if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(vertexShader));
-    }
-
-    this.gl.shaderSource(fragmentShader, CrtFragmentShader);
-    this.gl.compileShader(fragmentShader);
-    if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
-        alert(this.gl.getShaderInfoLog(fragmentShader));
-    }
-
-    this.crtShaderProgram = this.gl.createProgram();
-    this.gl.attachShader(this.crtShaderProgram, vertexShader);
-    this.gl.attachShader(this.crtShaderProgram, fragmentShader);
-    this.gl.linkProgram(this.crtShaderProgram);
-
-    // Check shaders
-    if (!this.gl.getProgramParameter(this.basicShaderProgram, this.gl.LINK_STATUS)
-        || !this.gl.getProgramParameter(this.textureShaderProgram, this.gl.LINK_STATUS)
-        || !this.gl.getProgramParameter(this.crtShaderProgram, this.gl.LINK_STATUS)) {
-        throw "Could not initialise shaders";
-    }
-
-    // Set uniforms and attributes
-    // Basic shader
-    this.gl.useProgram(this.basicShaderProgram);
-
-    this.basicShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.basicShaderProgram, "aVertexPosition");
-    this.gl.enableVertexAttribArray(this.basicShaderProgram.vertexPositionAttribute);
-
-    this.basicShaderProgram.vertexColorAttribute = this.gl.getAttribLocation(this.basicShaderProgram, "aVertexColor");
-    this.gl.enableVertexAttribArray(this.basicShaderProgram.vertexColorAttribute);
-
-    this.basicShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.basicShaderProgram, "uPMatrix");
-    this.basicShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.basicShaderProgram, "uMVMatrix");
-
-    // Basic texture
-    this.gl.useProgram(this.textureShaderProgram);
-
-    this.textureShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aVertexPosition");
-    this.gl.enableVertexAttribArray(this.textureShaderProgram.vertexPositionAttribute);
-
-    this.textureShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.textureShaderProgram, "aTextureCoord");
-    this.gl.enableVertexAttribArray(this.textureShaderProgram.textureCoordAttribute);
-
-    this.textureShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uPMatrix");
-    this.textureShaderProgram.mvMatrixUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uMVMatrix");
-    this.textureShaderProgram.samplerUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uSampler");
-    this.textureShaderProgram.textureWUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureW");
-    this.textureShaderProgram.textureHUniform = this.gl.getUniformLocation(this.textureShaderProgram, "uTextureH");
-
-    // CRT
-    this.gl.useProgram(this.crtShaderProgram);
-
-    this.crtShaderProgram.vertexPositionAttribute = this.gl.getAttribLocation(this.crtShaderProgram, "aVertexPosition");
-    this.gl.enableVertexAttribArray(this.crtShaderProgram.vertexPositionAttribute);
-
-    this.crtShaderProgram.textureCoordAttribute = this.gl.getAttribLocation(this.crtShaderProgram, "aTextureCoord");
-    this.gl.enableVertexAttribArray(this.crtShaderProgram.textureCoordAttribute);
-
-    this.crtShaderProgram.pMatrixUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uPMatrix");
-    this.crtShaderProgram.samplerUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uSampler");
-    this.crtShaderProgram.scanlinesUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uScanlines");
-    this.crtShaderProgram.barrelUniform = this.gl.getUniformLocation(this.crtShaderProgram, "uBarrelDistortion");
+    this.loadShaderSources("texture", BasicTextureVertexShader, BasicTextureFragmentShader);
+    this.shaderAttributeArrays("texture", ["aVertexPosition", "aTextureCoord"]);
+    this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH"]);
 };
 

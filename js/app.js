@@ -28,7 +28,13 @@ initShaders = function() {
     app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c", function() {
         app.shaderAttributeArrays("blur", ["aVertexPosition", "aTextureCoord"]);
         app.shaderUniforms("blur", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH", "uBlurAmount", "uBlurShift", "uClearColor"]);
-    });    
+    });
+    
+    // CRT
+    app.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
+        app.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
+        app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion"]);
+    });
 };
 
 var displayFunc = function (elapsed) {
@@ -99,21 +105,20 @@ var displayFunc = function (elapsed) {
 //
 //    app.gl.drawArrays(app.gl.TRIANGLES, 0, app.triangleVertexPosBuffer.numItems);
 
-    app.gl.useProgram(app.textureShaderProgram);
-//    app.gl.activeTexture(app.gl.TEXTURE0);
-//    app.gl.bindTexture(app.gl.TEXTURE_2D, app.snoopTexture);
+    app.gl.useProgram(app.shaders["texture"]);    
+
     app.useTexture("snoop");
-    app.useTexture("code", 1);
-    app.gl.uniform1i(app.textureShaderProgram.samplerUniform, 0);
+    app.useTexture("code", 1);  // not currently used in the shader
+    app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
 
     // Set shader matrices to those calculated
-    app.gl.uniformMatrix4fv(app.textureShaderProgram.mvMatrixUniform, false, app.mvMatrix);
-    app.gl.uniformMatrix4fv(app.textureShaderProgram.pMatrixUniform, false, app.pMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, app.mvMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.pMatrix);
 
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadVertexPosBuffer);
-    app.gl.vertexAttribPointer(app.textureShaderProgram.vertexPositionAttribute, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadCoordBuffer);
-    app.gl.vertexAttribPointer(app.textureShaderProgram.textureCoordAttribute, app.quadCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.quadCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.quadVertexPosBuffer.numItems);
 
@@ -128,23 +133,23 @@ var displayFunc = function (elapsed) {
     orthoMatrix = mat4.create();
     mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
 
-    app.gl.useProgram(app.textureShaderProgram);
+    app.gl.useProgram(app.shaders["texture"]);
 
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
-    app.gl.uniform1i(app.textureShaderProgram.samplerUniform, 0);
-    app.gl.uniform1f(app.textureShaderProgram.textureWUniform, app.X_RESOLUTION);
-    app.gl.uniform1f(app.textureShaderProgram.textureHUniform, app.Y_RESOLUTION);
-    app.gl.uniform1f(app.textureShaderProgram.blurAmountUniform, app.blurriness);
+    app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
+    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.X_RESOLUTION);
+    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.Y_RESOLUTION);
+    app.gl.uniform1f(app.shaders["texture"].uBlurAmount, app.blurriness);
 
-    app.gl.uniformMatrix4fv(app.textureShaderProgram.mvMatrixUniform, false, identityMv);
-    app.gl.uniformMatrix4fv(app.textureShaderProgram.pMatrixUniform, false, orthoMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, orthoMatrix);
 
     // Draw stuff
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-    app.gl.vertexAttribPointer(app.textureShaderProgram.vertexPositionAttribute, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-    app.gl.vertexAttribPointer(app.textureShaderProgram.textureCoordAttribute, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
 
@@ -157,22 +162,22 @@ var displayFunc = function (elapsed) {
     mat4.identity(orthoMatrix);
     mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
 
-    //app.gl.useProgram(app.crtShaderProgram);
-    app.gl.useProgram(app.textureShaderProgram);
+    //app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
+    app.gl.useProgram(app.shaders["texture"]);
 
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
-    //app.gl.uniform1i(app.crtShaderProgram.scanlinesUniform, app.mainCanvas.height / 2.5);
-	app.gl.uniform1i(app.crtShaderProgram.scanlinesUniform, app.Y_RESOLUTION);
-    app.gl.uniform1f(app.crtShaderProgram.barrelUniform, 0.0);
 
-    app.gl.uniformMatrix4fv(app.crtShaderProgram.pMatrixUniform, false, orthoMatrix);
+//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.Y_RESOLUTION);
+//    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
+
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, orthoMatrix);
 
     // Draw stuff
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-    app.gl.vertexAttribPointer(app.crtShaderProgram.vertexPositionAttribute, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-    app.gl.vertexAttribPointer(app.crtShaderProgram.textureCoordAttribute, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
 };
