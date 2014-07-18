@@ -57,5 +57,5 @@ var BasicTextureFragmentShader = "\
         vec4 fragmentColor;\
         \
         fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-        gl_FragColor = vec4(fragmentColor.rgb, 1.0);\
+        gl_FragColor = fragmentColor.rgba;\
     }";

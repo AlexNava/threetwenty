@@ -50,6 +50,12 @@ var WebGlMgr = function () {
             alert('Error while booting WebGL: ' + exception);
         }
 
+        // Builtin matrices ----------------
+        this.mvMatrix = mat4.create();
+        this.perspectiveProjMatrix = mat4.create();
+        this.orthoProjMatrix = mat4.create();
+        mat4.ortho(this.orthoProjMatrix, 0, this.X_RESOLUTION, 0, this.Y_RESOLUTION, -1, 1);
+        
         // Builtin framebuffer objects -----
         this.rttFramebuffer1 = null;
         this.rttTexture1 = null;
@@ -137,6 +143,93 @@ var WebGlMgr = function () {
         this.gl.bindTexture(this.gl.TEXTURE_2D, null);
         this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+    };
+
+    this.initBuffers = function() {
+        // Init triangle buffer
+        this.triangleVertexPosBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPosBuffer);
+        var vertices = [
+             0.0,  1.0, 0.0, 1.0,
+            -0.87, -0.5, 0.0, 1.0,
+             0.87, -0.5, 0.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        this.triangleVertexPosBuffer.itemSize = 4;
+        this.triangleVertexPosBuffer.numItems = 3;
+
+        this.triangleVertexColBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexColBuffer);
+        var colors = [
+            1.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            0.0, 0.0, 1.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+        this.triangleVertexColBuffer.itemSize = 4;
+        this.triangleVertexColBuffer.numItems = 3;
+
+        // Init generic textured quad buffer
+        this.quadVertexPosBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVertexPosBuffer);
+        var quadVertices = [
+            -0.5, -0.5, 0.0, 1.0,
+            -0.5, 0.5, 0.0, 1.0,
+            0.5, -0.5, 0.0, 1.0,
+            0.5, 0.5, 0.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
+        this.quadVertexPosBuffer.itemSize = 4;
+        this.quadVertexPosBuffer.numItems = 4;
+
+        this.quadCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
+        var quadCoords = [
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
+        this.quadCoordBuffer.itemSize = 2;
+        this.quadCoordBuffer.numItems = 4;
+
+        // Init fullscreen quad buffer
+        this.screenVertexBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
+        var quadVertices = [
+            0.0, 0.0, 0.0, 1.0,
+            0.0, this.Y_RESOLUTION, 0.0, 1.0,
+            this.X_RESOLUTION, 0.0, 0.0, 1.0,
+            this.X_RESOLUTION, this.Y_RESOLUTION, 0.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
+        this.screenVertexBuffer.itemSize = 4;
+        this.screenVertexBuffer.numItems = 4;
+
+        this.screenCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenCoordBuffer);
+        var quadCoords = [
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
+        this.screenCoordBuffer.itemSize = 2;
+        this.screenCoordBuffer.numItems = 4;
+    };
+
+    this.initBuiltinShaders = function() {    
+        // Init basic gouraud shader
+        this.loadShaderSources("base", BasicVertexShader, BasicFragmentShader);
+        this.shaderAttributeArrays("base", ["aVertexPosition", "aVertexColor"]);
+        this.shaderUniforms("base", ["uPMatrix", "uMVMatrix"]);
+
+        // Init basic texture shader
+        this.loadShaderSources("texture", BasicTextureVertexShader, BasicTextureFragmentShader);
+        this.shaderAttributeArrays("texture", ["aVertexPosition", "aTextureCoord"]);
+        this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH"]);
     };
 
     // Shader utils --------------------
@@ -249,100 +342,18 @@ var WebGlMgr = function () {
         this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureName]);
     };
 
-    // global timer
+    // Global timer --------------------
     this.timer = {
         lastTime: 0
     };
+
+    // Miscellaneous 2D drawing --------
+    this.colorRectangle = function(bottomLeftX, bottomLeftY, width, height) {
+    };
+
+    this.texturedRectangle = function(bottomLeftX, bottomLeftY, width, height) {
+    };
+
+    this.texturedQuad2D = function(centerX, centerY, size, rotation) {
+    };
 };
-
-WebGlMgr.prototype.initBuffers = function() {
-    // Init matrices
-    this.mvMatrix = mat4.create();
-    this.pMatrix = mat4.create();
-
-    // Init triangle buffer
-    this.triangleVertexPosBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPosBuffer);
-    var vertices = [
-         0.0,  1.0, 0.0, 1.0,
-        -0.87, -0.5, 0.0, 1.0,
-         0.87, -0.5, 0.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-    this.triangleVertexPosBuffer.itemSize = 4;
-    this.triangleVertexPosBuffer.numItems = 3;
-
-    this.triangleVertexColBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexColBuffer);
-    var colors = [
-        1.0, 0.0, 0.0, 1.0,
-        0.0, 1.0, 0.0, 1.0,
-        0.0, 0.0, 1.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
-    this.triangleVertexColBuffer.itemSize = 4;
-    this.triangleVertexColBuffer.numItems = 3;
-
-    // Init generic textured quad buffer
-    this.quadVertexPosBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVertexPosBuffer);
-    var quadVertices = [
-        -0.5, -0.5, 0.0, 1.0,
-        -0.5, 0.5, 0.0, 1.0,
-        0.5, -0.5, 0.0, 1.0,
-        0.5, 0.5, 0.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
-    this.quadVertexPosBuffer.itemSize = 4;
-    this.quadVertexPosBuffer.numItems = 4;
-
-    this.quadCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
-    var quadCoords = [
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
-    this.quadCoordBuffer.itemSize = 2;
-    this.quadCoordBuffer.numItems = 4;
-
-    // Init fullscreen quad buffer
-    this.screenVertexBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
-    var quadVertices = [
-        0.0, 0.0, 0.0, 1.0,
-        0.0, this.Y_RESOLUTION, 0.0, 1.0,
-        this.X_RESOLUTION, 0.0, 0.0, 1.0,
-        this.X_RESOLUTION, this.Y_RESOLUTION, 0.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
-    this.screenVertexBuffer.itemSize = 4;
-    this.screenVertexBuffer.numItems = 4;
-
-    this.screenCoordBuffer = this.gl.createBuffer();
-    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenCoordBuffer);
-    var quadCoords = [
-        0.0, 0.0,
-        0.0, 1.0,
-        1.0, 0.0,
-        1.0, 1.0
-    ];
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
-    this.screenCoordBuffer.itemSize = 2;
-    this.screenCoordBuffer.numItems = 4;
-};
-
-WebGlMgr.prototype.initBuiltinShaders = function() {    
-    // Init basic gouraud shader
-    this.loadShaderSources("base", BasicVertexShader, BasicFragmentShader);
-    this.shaderAttributeArrays("base", ["aVertexPosition", "aVertexColor"]);
-    this.shaderUniforms("base", ["uPMatrix", "uMVMatrix"]);
-
-    // Init basic texture shader
-    this.loadShaderSources("texture", BasicTextureVertexShader, BasicTextureFragmentShader);
-    this.shaderAttributeArrays("texture", ["aVertexPosition", "aTextureCoord"]);
-    this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH"]);
-};
-

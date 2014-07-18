@@ -12,14 +12,14 @@ var startFunc = function () {
     app.gl.enable(app.gl.DEPTH_TEST);
 
     app.mvMatrix = mat4.create();
-    app.pMatrix = mat4.create();
+    app.perspectiveProjMatrix = mat4.create();
 
     initTextures();
     initShaders();
 };
 
 initTextures = function() {
-    app.loadTexture("snoop", "images/SnoopDoge.jpg");
+    app.loadTexture("snoop", "images/SnoopDogeTransp.png");
     app.loadTexture("code", "images/code64.png");
 };
 
@@ -39,7 +39,7 @@ initShaders = function() {
 
 var displayFunc = function (elapsed) {
     animateFun(elapsed);
-    checkResize(app.mainCanvas, app.pMatrix);
+    checkResize(app.mainCanvas, app.perspectiveProjMatrix);
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
@@ -52,10 +52,7 @@ var displayFunc = function (elapsed) {
     // Instead of clearing color buffer, put the previous frame on it (blurred)
     app.gl.disable(app.gl.DEPTH_TEST);
 
-    // Setup orthographic matrices
     var identityMv = mat4.create();
-    var orthoMatrix = mat4.create();
-    mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
 
     if (app.shaders["blur"] !== undefined) {
         app.gl.useProgram(app.shaders["blur"]);
@@ -70,7 +67,7 @@ var displayFunc = function (elapsed) {
         app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.05);
 
         app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
-        app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, orthoMatrix);
+        app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
 
         // Draw stuff
         app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
@@ -84,9 +81,8 @@ var displayFunc = function (elapsed) {
     app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
     // End of blur-out
 
-
-    mat4.identity(app.pMatrix);
-    mat4.perspective(app.pMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
+    mat4.identity(app.perspectiveProjMatrix);
+    mat4.perspective(app.perspectiveProjMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
 
     mat4.identity(app.mvMatrix);
     mat4.translate(app.mvMatrix, app.mvMatrix, [0.0, 0.0, -1.5]);
@@ -96,7 +92,7 @@ var displayFunc = function (elapsed) {
 
 //    // Set shader matrices to those calculated
 //    app.gl.uniformMatrix4fv(app.basicShaderProgram.mvMatrixUniform, false, app.mvMatrix);
-//    app.gl.uniformMatrix4fv(app.basicShaderProgram.pMatrixUniform, false, app.pMatrix);
+//    app.gl.uniformMatrix4fv(app.basicShaderProgram.pMatrixUniform, false, app.perspectiveProjMatrix);
 
 //    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.triangleVertexPosBuffer);
 //    app.gl.vertexAttribPointer(app.basicShaderProgram.vertexPositionAttribute, app.triangleVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
@@ -109,11 +105,13 @@ var displayFunc = function (elapsed) {
 
     app.useTexture("snoop");
     app.useTexture("code", 1);  // not currently used in the shader
+    app.gl.enable(app.gl.BLEND);
+    app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
     app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
 
     // Set shader matrices to those calculated
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, app.mvMatrix);
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.pMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.perspectiveProjMatrix);
 
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadVertexPosBuffer);
     app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
@@ -128,10 +126,7 @@ var displayFunc = function (elapsed) {
     app.gl.viewport(0, 0, app.X_RESOLUTION, app.Y_RESOLUTION);
     app.gl.disable(app.gl.DEPTH_TEST);
 
-    // Setup orthographic matrices
     identityMv = mat4.create();
-    orthoMatrix = mat4.create();
-    mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
 
     app.gl.useProgram(app.shaders["texture"]);
 
@@ -143,7 +138,7 @@ var displayFunc = function (elapsed) {
     app.gl.uniform1f(app.shaders["texture"].uBlurAmount, app.blurriness);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, orthoMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
 
     // Draw stuff
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
@@ -158,10 +153,6 @@ var displayFunc = function (elapsed) {
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
     app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
 
-    // Setup orthographic matrices
-    mat4.identity(orthoMatrix);
-    mat4.ortho(orthoMatrix, 0, app.X_RESOLUTION, 0, app.Y_RESOLUTION, -1, 1);
-
     //app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
     app.gl.useProgram(app.shaders["texture"]);
 
@@ -171,7 +162,7 @@ var displayFunc = function (elapsed) {
 //    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.Y_RESOLUTION);
 //    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
 
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, orthoMatrix);
+    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
 
     // Draw stuff
     app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
