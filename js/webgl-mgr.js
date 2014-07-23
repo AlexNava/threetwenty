@@ -229,7 +229,12 @@ var WebGlMgr = function () {
         // Init basic texture shader
         this.loadShaderSources("texture", BasicTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("texture", ["aVertexPosition", "aTextureCoord"]);
-        this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH"]);
+        this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler"]);
+
+        // Init textured quads shader
+        this.loadShaderSources("quad2d", Quad2DTextureVertexShader, BasicTextureFragmentShader);
+        this.shaderAttributeArrays("quad2d", ["aVertexPosition", "aTextureCoord"]);
+        this.shaderUniforms("quad2d", ["uPMatrix", "uCenterPosition", "uScale", "uRotation", "uSampler"]);
     };
 
     // Shader utils --------------------
@@ -242,13 +247,13 @@ var WebGlMgr = function () {
         this.gl.shaderSource(vertexShader, vertexSource);
         this.gl.compileShader(vertexShader);
         if (!this.gl.getShaderParameter(vertexShader, this.gl.COMPILE_STATUS)) {
-            alert("Error compiling vertex shader: " + vertexFile + "\n" + this.gl.getShaderInfoLog(vertexShader));
+            alert("Error compiling vertex shader: " + shaderName + "\n" + this.gl.getShaderInfoLog(vertexShader));
         }
 
         this.gl.shaderSource(fragmentShader, fragmentSource);
         this.gl.compileShader(fragmentShader);
         if (!this.gl.getShaderParameter(fragmentShader, this.gl.COMPILE_STATUS)) {
-            alert("Error compiling fragment shader: " + fragmentFile + "\n" + this.gl.getShaderInfoLog(fragmentShader));
+            alert("Error compiling fragment shader: " + shaderName + "\n" + this.gl.getShaderInfoLog(fragmentShader));
         }
 
         var shaderProgram = this.gl.createProgram();
@@ -355,5 +360,20 @@ var WebGlMgr = function () {
     };
 
     this.texturedQuad2D = function(centerX, centerY, size, rotation) {
+        this.gl.useProgram(this.shaders["quad2d"]);    
+
+        // Set only proj matrix
+        this.gl.uniformMatrix4fv(this.shaders["quad2d"].uPMatrix, false, this.orthoProjMatrix);
+        this.gl.uniform1i(this.shaders["quad2d"].uSampler, 0);
+        this.gl.uniform2fv(this.shaders["quad2d"].uCenterPosition, [centerX, centerY]);
+        this.gl.uniform1f(this.shaders["quad2d"].uScale, size);
+        this.gl.uniform1f(this.shaders["quad2d"].uRotation, rotation);
+    
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVertexPosBuffer);
+        this.gl.vertexAttribPointer(app.shaders["quad2d"].aVertexPosition, this.quadVertexPosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
+        this.gl.vertexAttribPointer(app.shaders["quad2d"].aTextureCoord, this.quadCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVertexPosBuffer.numItems);
     };
 };

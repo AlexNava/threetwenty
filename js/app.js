@@ -147,6 +147,8 @@ var displayFunc = function (elapsed) {
     app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+    
+    app.texturedQuad2D(160, 120, 80, 1.57);
 
     //----------------------------------------------------------------------------------------------
     // draw textured quad from second FBO to screen
