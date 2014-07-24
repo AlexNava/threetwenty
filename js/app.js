@@ -81,44 +81,37 @@ var displayFunc = function (elapsed) {
     app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
     // End of blur-out
 
-    mat4.identity(app.perspectiveProjMatrix);
-    mat4.perspective(app.perspectiveProjMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
+    // mat4.identity(app.perspectiveProjMatrix);
+    // mat4.perspective(app.perspectiveProjMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
 
-    mat4.identity(app.mvMatrix);
-    mat4.translate(app.mvMatrix, app.mvMatrix, [0.0, 0.0, -1.5]);
-    mat4.rotate(app.mvMatrix, app.mvMatrix, (app.angle * 3.14159 / 180.0), [0, 0, 1]);
-
-//    app.gl.useProgram(app.basicShaderProgram);
-
-//    // Set shader matrices to those calculated
-//    app.gl.uniformMatrix4fv(app.basicShaderProgram.mvMatrixUniform, false, app.mvMatrix);
-//    app.gl.uniformMatrix4fv(app.basicShaderProgram.pMatrixUniform, false, app.perspectiveProjMatrix);
-
-//    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.triangleVertexPosBuffer);
-//    app.gl.vertexAttribPointer(app.basicShaderProgram.vertexPositionAttribute, app.triangleVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-//    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.triangleVertexColBuffer);
-//    app.gl.vertexAttribPointer(app.basicShaderProgram.vertexColorAttribute, app.triangleVertexColBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-//
-//    app.gl.drawArrays(app.gl.TRIANGLES, 0, app.triangleVertexPosBuffer.numItems);
-
-    app.gl.useProgram(app.shaders["texture"]);    
+    // mat4.identity(app.mvMatrix);
+    // mat4.translate(app.mvMatrix, app.mvMatrix, [0.0, 0.0, -1.5]);
+    // mat4.rotate(app.mvMatrix, app.mvMatrix, (app.angle * 3.14159 / 180.0), [0, 0, 1]);
 
     app.useTexture("snoop");
-    app.useTexture("code", 1);  // not currently used in the shader
+
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
-    app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
+    app.gl.uniform1i(app.shaders["quad2d"].uSampler, 0);
 
-    // Set shader matrices to those calculated
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, app.mvMatrix);
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.perspectiveProjMatrix);
+    app.texturedQuad2D(160, 120, 150, app.angle * 3.14159 / 180.0);
 
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadVertexPosBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadCoordBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.quadCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    //for (var row = 0; row < 12; row++) {
+    //    for (var col = 0; col < 16; col++) {
+    //        app.texturedQuad2D(10 + col * 20, 10 + row * 20, 15, (app.angle + row * 2 + col * 2) * 3.14159 / 180.0);
+    //    }
+    //}
+    
+    // // Set shader matrices to those calculated
+    // app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, app.mvMatrix);
+    // app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.perspectiveProjMatrix);
 
-    app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.quadVertexPosBuffer.numItems);
+    // app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadVertexPosBuffer);
+    // app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    // app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadCoordBuffer);
+    // app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.quadCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+
+    // app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.quadVertexPosBuffer.numItems);
 
     //----------------------------------------------------------------------------------------------
     // Intermediate step: draw textured quad from first FBO to second FBO
@@ -147,8 +140,6 @@ var displayFunc = function (elapsed) {
     app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
-    
-    app.texturedQuad2D(160, 120, 80, 1.57);
 
     //----------------------------------------------------------------------------------------------
     // draw textured quad from second FBO to screen
