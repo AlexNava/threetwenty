@@ -81,27 +81,8 @@ var displayFunc = function (elapsed) {
     app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
     // End of blur-out
 
-    mat4.identity(app.perspectiveProjMatrix);
-    mat4.perspective(app.perspectiveProjMatrix, 45, 4.0 / 3.0, 0.1, 100.0);
-
-    mat4.identity(app.mvMatrix);
-    mat4.translate(app.mvMatrix, app.mvMatrix, [0.0, 0.0, -1.5]);
-    mat4.rotate(app.mvMatrix, app.mvMatrix, (angle * 3.14159 / 180.0), [0, 0, 1]);
-
-//    app.gl.useProgram(app.basicShaderProgram);
-
-//    // Set shader matrices to those calculated
-//    app.gl.uniformMatrix4fv(app.basicShaderProgram.mvMatrixUniform, false, app.mvMatrix);
-//    app.gl.uniformMatrix4fv(app.basicShaderProgram.pMatrixUniform, false, app.perspectiveProjMatrix);
-
-//    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.triangleVertexPosBuffer);
-//    app.gl.vertexAttribPointer(app.basicShaderProgram.vertexPositionAttribute, app.triangleVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-//    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.triangleVertexColBuffer);
-//    app.gl.vertexAttribPointer(app.basicShaderProgram.vertexColorAttribute, app.triangleVertexColBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-//
-//    app.gl.drawArrays(app.gl.TRIANGLES, 0, app.triangleVertexPosBuffer.numItems);
-
     app.useTexture("snoop");
+
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
     app.gl.uniform1i(app.shaders["quad2d"].uSampler, 0);
@@ -120,6 +101,7 @@ var displayFunc = function (elapsed) {
 //    }
     
     
+
     //----------------------------------------------------------------------------------------------
     // Intermediate step: draw textured quad from first FBO to second FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
