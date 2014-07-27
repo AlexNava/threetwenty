@@ -4,10 +4,10 @@ var app = new WebGlMgr();
 // Redefinition of library functions: drawScene, animate
 
 var startFunc = function () {
-    app.angle = 0.0;
-    app.blurriness = 0.0;
-    app.blurShiftX = 1.0;
-    app.blurShiftY = 1.0;
+    angle = 0.0;
+    blurriness = 0.0;
+    blurShiftX = 1.0;
+    blurShiftY = 1.0;
 
     app.gl.enable(app.gl.DEPTH_TEST);
 
@@ -63,7 +63,7 @@ var displayFunc = function (elapsed) {
         app.gl.uniform1f(app.shaders["blur"].uTextureW, app.X_RESOLUTION);
         app.gl.uniform1f(app.shaders["blur"].uTextureH, app.Y_RESOLUTION);
         app.gl.uniform1f(app.shaders["blur"].uBlurAmount, 0.25);
-        app.gl.uniform2f(app.shaders["blur"].uBlurShift, app.blurShiftX, app.blurShiftY);
+        app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
         app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.05);
 
         app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
@@ -86,7 +86,7 @@ var displayFunc = function (elapsed) {
 
     mat4.identity(app.mvMatrix);
     mat4.translate(app.mvMatrix, app.mvMatrix, [0.0, 0.0, -1.5]);
-    mat4.rotate(app.mvMatrix, app.mvMatrix, (app.angle * 3.14159 / 180.0), [0, 0, 1]);
+    mat4.rotate(app.mvMatrix, app.mvMatrix, (angle * 3.14159 / 180.0), [0, 0, 1]);
 
 //    app.gl.useProgram(app.basicShaderProgram);
 
@@ -101,25 +101,25 @@ var displayFunc = function (elapsed) {
 //
 //    app.gl.drawArrays(app.gl.TRIANGLES, 0, app.triangleVertexPosBuffer.numItems);
 
-    app.gl.useProgram(app.shaders["texture"]);    
-
     app.useTexture("snoop");
-    app.useTexture("code", 1);  // not currently used in the shader
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
-    app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
+    app.gl.uniform1i(app.shaders["quad2d"].uSampler, 0);
 
-    // Set shader matrices to those calculated
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, app.mvMatrix);
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.perspectiveProjMatrix);
+    app.texturedQuad2D(160, 120, 120, (angle * 3.14159 / 180.0));
+    app.texturedRectangle(10, 10, 73, 14,
+                          55, 210, 73, 14,
+                          512, 512);
 
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadVertexPosBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.quadVertexPosBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.quadCoordBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.quadCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-
-    app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.quadVertexPosBuffer.numItems);
-
+//    for (var row = 0; row < 6; row++)
+//    {
+//        for (var col = 0; col < 8; col++)
+//        {
+//            app.texturedQuad2D(20 + col * 40, 20 + row * 40, 40, ((angle + row * 10 + col * 10) * 3.14159 / 180.0));
+//        }
+//    }
+    
+    
     //----------------------------------------------------------------------------------------------
     // Intermediate step: draw textured quad from first FBO to second FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
@@ -135,7 +135,7 @@ var displayFunc = function (elapsed) {
     app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
     app.gl.uniform1f(app.shaders["texture"].uTextureW, app.X_RESOLUTION);
     app.gl.uniform1f(app.shaders["texture"].uTextureH, app.Y_RESOLUTION);
-    app.gl.uniform1f(app.shaders["texture"].uBlurAmount, app.blurriness);
+    app.gl.uniform1f(app.shaders["texture"].uBlurAmount, blurriness);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
@@ -147,8 +147,6 @@ var displayFunc = function (elapsed) {
     app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
-    
-    app.texturedQuad2D(160, 120, 80, 1.57);
 
     //----------------------------------------------------------------------------------------------
     // draw textured quad from second FBO to screen
@@ -178,43 +176,43 @@ var displayFunc = function (elapsed) {
 var animateFun = function (elapsed) {
 
     // Update stuff based on timers and keys
-    app.angle += 180.0 * 0.001;
+    angle += 180.0 * 0.001;
 
     input.pollTouchGestures();
 
     if ((input.keyPressed[37] === true) || (input.gestureLeft === true)) {
         // left
-//        app.angle += elapsed * 60.0 * 0.001;
-        app.blurShiftX -= elapsed * 4.0 * 0.001;
-        if (app.blurShiftX <= -5) {
-            app.blurShiftX = -5;
+//        angle += elapsed * 60.0 * 0.001;
+        blurShiftX -= elapsed * 4.0 * 0.001;
+        if (blurShiftX <= -5) {
+            blurShiftX = -5;
         }
     } else if ((input.keyPressed[39] === true) || (input.gestureRight === true)) {
         // right
-//        app.angle -= elapsed * 60.0 * 0.001;
-        app.blurShiftX += elapsed * 4.0 * 0.001;
-        if (app.blurShiftX >= 5) {
-            app.blurShiftX = 5;
+//        angle -= elapsed * 60.0 * 0.001;
+        blurShiftX += elapsed * 4.0 * 0.001;
+        if (blurShiftX >= 5) {
+            blurShiftX = 5;
         }
     }
 
     if ((input.keyPressed[38] === true) || (input.gestureUp === true)) {
         // up
-//        app.blurriness += elapsed * 0.001;
-//        if (app.blurriness >= 1.5)
-//            app.blurriness = 1.5;
-        app.blurShiftY += elapsed * 4.0 * 0.001;
-        if (app.blurShiftY >= 5) {
-            app.blurShiftY = 5;
+//        blurriness += elapsed * 0.001;
+//        if (blurriness >= 1.5)
+//            blurriness = 1.5;
+        blurShiftY += elapsed * 4.0 * 0.001;
+        if (blurShiftY >= 5) {
+            blurShiftY = 5;
         }
     } else if ((input.keyPressed[40] === true) || (input.gestureDown === true)) {
         // down
-//        app.blurriness -= elapsed * 0.001;
-//        if (app.blurriness <= 0.0)
-//            app.blurriness = 0.0;
-        app.blurShiftY -= elapsed * 4.0 * 0.001;
-        if (app.blurShiftY <= -5) {
-            app.blurShiftY = -5;
+//        blurriness -= elapsed * 0.001;
+//        if (blurriness <= 0.0)
+//            blurriness = 0.0;
+        blurShiftY -= elapsed * 4.0 * 0.001;
+        if (blurShiftY <= -5) {
+            blurShiftY = -5;
         }
     }
 };

@@ -24,6 +24,7 @@ var WebGlMgr = function () {
         }
         this.timer.lastTime = timeNow;
 
+        this.lastFunction = -1;
         this.displayFunc(elapsed);
 
         requestAnimationFrame(this.tick.bind(this));
@@ -71,7 +72,7 @@ var WebGlMgr = function () {
         this.screenCoordBuffer = null;
 
         this.initOffscreenBuffers();
-        this.initBuffers();
+        this.initVertexBuffers();
         this.initBuiltinShaders();
     };
 
@@ -145,7 +146,7 @@ var WebGlMgr = function () {
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
     };
 
-    this.initBuffers = function() {
+    this.initVertexBuffers = function() {
         // Init triangle buffer
         this.triangleVertexPosBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPosBuffer);
@@ -194,10 +195,35 @@ var WebGlMgr = function () {
         this.quadCoordBuffer.itemSize = 2;
         this.quadCoordBuffer.numItems = 4;
 
+        // Init generic unit rectangle buffer, to be used with aligned "sprites"
+        this.rectVertexPosBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectVertexPosBuffer);
+        quadVertices = [
+            0.0, 0.0, 0.0, 1.0,
+            0.0, 1.0, 0.0, 1.0,
+            1.0, 0.0, 0.0, 1.0,
+            1.0, 1.0, 0.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
+        this.rectVertexPosBuffer.itemSize = 4;
+        this.rectVertexPosBuffer.numItems = 4;
+
+        this.rectCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectCoordBuffer);
+        quadCoords = [
+            0.0, 0.0,
+            0.0, 1.0,
+            1.0, 0.0,
+            1.0, 1.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadCoords), this.gl.STATIC_DRAW);
+        this.rectCoordBuffer.itemSize = 2;
+        this.rectCoordBuffer.numItems = 4;
+
         // Init fullscreen quad buffer
         this.screenVertexBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
-        var quadVertices = [
+        quadVertices = [
             0.0, 0.0, 0.0, 1.0,
             0.0, this.Y_RESOLUTION, 0.0, 1.0,
             this.X_RESOLUTION, 0.0, 0.0, 1.0,
@@ -209,7 +235,7 @@ var WebGlMgr = function () {
 
         this.screenCoordBuffer = this.gl.createBuffer();
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenCoordBuffer);
-        var quadCoords = [
+        quadCoords = [
             0.0, 0.0,
             0.0, 1.0,
             1.0, 0.0,
@@ -235,6 +261,11 @@ var WebGlMgr = function () {
         this.loadShaderSources("quad2d", Quad2DTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("quad2d", ["aVertexPosition", "aTextureCoord"]);
         this.shaderUniforms("quad2d", ["uPMatrix", "uCenterPosition", "uScale", "uRotation", "uSampler"]);
+    
+        // Init textured aligned rectangle shader
+        this.loadShaderSources("rect2d", Rect2DTextureVertexShader, BasicTextureFragmentShader);
+        this.shaderAttributeArrays("rect2d", ["aVertexPosition", "aTextureCoord"]);
+        this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler"]);
     };
 
     // Shader utils --------------------
@@ -353,27 +384,62 @@ var WebGlMgr = function () {
     };
 
     // Miscellaneous 2D drawing --------
-    this.colorRectangle = function(bottomLeftX, bottomLeftY, width, height) {
-    };
-
-    this.texturedRectangle = function(bottomLeftX, bottomLeftY, width, height) {
-    };
-
-    this.texturedQuad2D = function(centerX, centerY, size, rotation) {
-        this.gl.useProgram(this.shaders["quad2d"]);    
-
-        // Set only proj matrix
-        this.gl.uniformMatrix4fv(this.shaders["quad2d"].uPMatrix, false, this.orthoProjMatrix);
-        this.gl.uniform1i(this.shaders["quad2d"].uSampler, 0);
-        this.gl.uniform2fv(this.shaders["quad2d"].uCenterPosition, [centerX, centerY]);
-        this.gl.uniform1f(this.shaders["quad2d"].uScale, size);
-        this.gl.uniform1f(this.shaders["quad2d"].uRotation, rotation);
+    this.lastFunction = -1;
     
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVertexPosBuffer);
-        this.gl.vertexAttribPointer(app.shaders["quad2d"].aVertexPosition, this.quadVertexPosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
-        this.gl.vertexAttribPointer(app.shaders["quad2d"].aTextureCoord, this.quadCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+    this.texturedQuad2D = function(centerX, centerY, size, rotation) {
+        var shad = this.shaders["quad2d"];
+        
+        if (this.lastFunction !== 1)
+        {
+            this.gl.useProgram(shad);    
 
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadVertexPosBuffer);
+            this.gl.vertexAttribPointer(shad.aVertexPosition, this.quadVertexPosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
+            this.gl.vertexAttribPointer(shad.aTextureCoord, this.quadCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+            // Set only proj matrix
+            this.gl.uniformMatrix4fv(shad.uPMatrix, false, this.orthoProjMatrix);
+            this.gl.uniform1i(shad.uSampler, 0);
+        }
+
+        this.gl.uniform2fv(shad.uCenterPosition, [centerX, centerY]);
+        this.gl.uniform1f(shad.uScale, size);
+        this.gl.uniform1f(shad.uRotation, rotation);
+    
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVertexPosBuffer.numItems);
+        
+        this.lastFunction = 1;
     };
+
+    this.texturedRectangle = function(bottomLeftX, bottomLeftY, width, height,
+                                      bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight,
+                                      textureWidth, textureHeight) {
+        var shad = this.shaders["rect2d"];
+        
+        if (this.lastFunction !== 2)
+        {
+            this.gl.useProgram(shad);    
+
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectVertexPosBuffer);
+            this.gl.vertexAttribPointer(shad.aVertexPosition, this.rectVertexPosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.quadCoordBuffer);
+            this.gl.vertexAttribPointer(shad.aTextureCoord, this.rectCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+
+            // Set only proj matrix
+            this.gl.uniformMatrix4fv(shad.uPMatrix, false, this.orthoProjMatrix);
+            this.gl.uniform1i(shad.uSampler, 0);
+        }
+        
+        this.gl.uniform2fv(shad.uCornerPosition, [bottomLeftX, bottomLeftY]);
+        this.gl.uniform2fv(shad.uSize, [width, height]);
+        this.gl.uniform2fv(shad.uTextureCornerPosition, [bottomLeftTextureX, bottomLeftTextureY]);
+        this.gl.uniform2fv(shad.uTextureSelectionSize, [textureSelectionWidth, textureSelectionHeight]);
+        this.gl.uniform2fv(shad.uTextureSize, [textureWidth, textureHeight]);
+    
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.rectVertexPosBuffer.numItems);
+
+        this.lastFunction = 2;
+    };
+
 };
