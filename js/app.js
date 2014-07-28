@@ -5,7 +5,7 @@ var app = new WebGlMgr();
 
 var startFunc = function () {
     angle = 0.0;
-    blurriness = 0.0;
+    blurriness = 0.5;
     blurShiftX = 1.0;
     blurShiftY = 1.0;
 
@@ -62,7 +62,7 @@ var displayFunc = function (elapsed) {
         app.gl.uniform1i(app.shaders["blur"].uSampler, 0);
         app.gl.uniform1f(app.shaders["blur"].uTextureW, app.X_RESOLUTION);
         app.gl.uniform1f(app.shaders["blur"].uTextureH, app.Y_RESOLUTION);
-        app.gl.uniform1f(app.shaders["blur"].uBlurAmount, 0.25);
+        app.gl.uniform1f(app.shaders["blur"].uBlurAmount, blurriness);
         app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
         app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.05);
 
@@ -117,7 +117,6 @@ var displayFunc = function (elapsed) {
     app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
     app.gl.uniform1f(app.shaders["texture"].uTextureW, app.X_RESOLUTION);
     app.gl.uniform1f(app.shaders["texture"].uTextureH, app.Y_RESOLUTION);
-    app.gl.uniform1f(app.shaders["texture"].uBlurAmount, blurriness);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
