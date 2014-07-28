@@ -77,8 +77,8 @@ var displayFunc = function (elapsed) {
         app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
     }
 
-    app.gl.enable(app.gl.DEPTH_TEST);
-    app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
+    app.gl.disable(app.gl.DEPTH_TEST);
+    //app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
     // End of blur-out
 
     app.useTexture("snoop");
@@ -88,10 +88,16 @@ var displayFunc = function (elapsed) {
     app.gl.uniform1i(app.shaders["quad2d"].uSampler, 0);
 
     app.texturedQuad2D(160, 120, 120, (angle * 3.14159 / 180.0));
+
     app.texturedRectangle(10, 10, 73, 14,
                           55, 210, 73, 14,
                           512, 512);
 
+    app.useTexture("code");
+    app.texturedRectangle(10, 40, 3, 6,
+                          3, 24, 3, 6,
+                          64, 64);
+    
 //    for (var row = 0; row < 6; row++)
 //    {
 //        for (var col = 0; col < 8; col++)
