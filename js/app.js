@@ -1,4 +1,5 @@
 var input = new InputMgr();
+var font = new FontMgr();
 var app = new WebGlMgr();
 
 // Redefinition of library functions: drawScene, animate
