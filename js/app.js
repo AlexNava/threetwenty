@@ -1,9 +1,3 @@
-var input = new InputMgr();
-var font = new FontMgr();
-var app = new WebGlMgr();
-
-// Redefinition of library functions: drawScene, animate
-
 var startFunc = function () {
     angle = 0.0;
     blurriness = 0.5;
@@ -65,7 +59,7 @@ var displayFunc = function (elapsed) {
         app.gl.uniform1f(app.shaders["blur"].uTextureH, app.Y_RESOLUTION);
         app.gl.uniform1f(app.shaders["blur"].uBlurAmount, blurriness);
         app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
-        app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.05);
+        app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.1);
 
         app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
         app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
@@ -94,18 +88,8 @@ var displayFunc = function (elapsed) {
                           55, 210, 73, 14,
                           512, 512);
 
-    app.useTexture("code");
-    app.texturedRectangle(10, 40, 3, 6,
-                          3, 24, 3, 6,
-                          64, 64);
-    
-//    for (var row = 0; row < 6; row++)
-//    {
-//        for (var col = 0; col < 8; col++)
-//        {
-//            app.texturedQuad2D(20 + col * 40, 20 + row * 40, 40, ((angle + row * 10 + col * 10) * 3.14159 / 180.0));
-//        }
-//    }
+    font.drawTextXy("Nokia font 8pt :)", 10, 40, "nokia");
+    font.drawTextXy("Very brown fox, much quick, such jump, concern...", 40, 110, "nokia");
     
     
 
@@ -218,7 +202,15 @@ var checkResize = function(canvas, projMatrix) {
     }
 };
 
+
+var app = new WebGlMgr();
 app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
+
+var input = new InputMgr();
+
+var font = new FontMgr(app);
+font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
+
 app.start();
