@@ -23,7 +23,7 @@ initShaders = function() {
 
 var displayFunc = function (elapsed) {
     animateFun(elapsed);
-    checkResize(app.mainCanvas, app.perspectiveProjMatrix);
+    checkResize(app.mainCanvas);
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
@@ -51,6 +51,9 @@ var displayFunc = function (elapsed) {
     app.texturedRectangle(10, 10, 128, 128,
                           0, 0, 64, 64,
                           64, 64);
+
+    font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
+                    10, 130, "nokia");
 
     for (var i = 0; i < input.touchPoints.length; i++) {
         if (input.touchPoints[i].lastX !== undefined) {
@@ -96,7 +99,7 @@ var animateFun = function (elapsed) {
 var lastSizeW = 0;
 var lastSizeH = 0;
 
-var checkResize = function(canvas, projMatrix) {
+var checkResize = function(canvas) {
     if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
         lastSizeH = window.innerHeight;
         lastSizeW = window.innerWidth;
