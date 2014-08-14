@@ -51,7 +51,7 @@ InputMgr.prototype.setup = function () {
                 this.touchPoints[event.changedTouches[i].identifier].lastY = this.touchPoints[event.changedTouches[i].identifier].currentY;
                 this.touchPoints[event.changedTouches[i].identifier].currentX = event.changedTouches[i].clientX;
                 this.touchPoints[event.changedTouches[i].identifier].currentY = event.changedTouches[i].clientY;
-                this.touchPoints[event.changedTouches[i].identifier].relativeCheck = false;
+                this.touchPoints[event.changedTouches[i].identifier].moved = false;
             }
         }.bind(this),
         false
@@ -83,7 +83,7 @@ InputMgr.prototype.pollTouchGestures = function() {
     this.gestureUp = false;
     this.gestureDown = false;
     if (this.touchPoints.length > 0) {
-        if (this.touchPoints[0].relativeCheck === false) {
+        if (this.touchPoints[0].moved === false) {
             var deltaX = this.touchPoints[0].currentX - this.touchPoints[0].lastX;
             var deltaY = this.touchPoints[0].currentY - this.touchPoints[0].lastY;
             if (deltaX < -2) {
@@ -98,7 +98,7 @@ InputMgr.prototype.pollTouchGestures = function() {
             if (deltaY > 2) {
                 this.gestureDown = true;
             }
-            this.touchPoints[0].relativeCheck = true;
+            this.touchPoints[0].moved = true;
         }
     }
 };

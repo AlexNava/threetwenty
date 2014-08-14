@@ -1,6 +1,23 @@
 var startFunc = function () {
+    
+    app.terraingrid = new Array(100);
+    for (var row = 0; row < 100; row++) {
+        app.terraingrid[row] = new Array(100);
+            for (var col = 0; col < 100; col++) {
+                var test = Math.random();
+                if (test < 0.5)
+                    app.terraingrid[row][col] = 0;
+                else
+                    app.terraingrid[row][col] = 1;                    
+            }
+    }
 
-    app.gl.enable(app.gl.DEPTH_TEST);
+    app.viewCenter = {};
+    app.viewCenter.x = 50;
+    app.viewCenter.y = 50;
+    app.viewCenter.xSpeed = 0;
+    app.viewCenter.ySpeed = 0;
+    app.viewScale = 40; // pixels x unit
 
     app.mvMatrix = mat4.create();
     app.perspectiveProjMatrix = mat4.create();
@@ -22,12 +39,13 @@ initShaders = function() {
 };
 
 var displayFunc = function (elapsed) {
+
     animateFun(elapsed);
     checkResize(app.mainCanvas);
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
-    app.gl.viewport(0, 0, app.X_RESOLUTION, app.Y_RESOLUTION);
+    app.gl.viewport(0, 0, app.xResolution, app.yResolution);
     //app.gl.enable(app.gl.DEPTH_TEST);
 
     app.gl.clearColor(0.5, 0.5, 0.5, 1.0);
@@ -37,8 +55,8 @@ var displayFunc = function (elapsed) {
 
     
     var identityMv = mat4.create();
-    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.X_RESOLUTION);
-    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.Y_RESOLUTION);
+    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.xResolution);
+    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.yResolution);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
@@ -48,21 +66,48 @@ var displayFunc = function (elapsed) {
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
-    app.texturedRectangle(10, 10, 128, 128,
-                          0, 0, 64, 64,
-                          64, 64);
+//    app.texturedRectangle(10, 10, 128, 128,
+//                          0, 0, 64, 64,
+//                          64, 64);
 
-    font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
-                    10, 130, "nokia");
+//    font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
+//                    10, 130, "nokia");
+//
+//    for (var i = 0; i < input.touchPoints.length; i++) {
+//        if (input.touchPoints[i].lastX !== undefined) {
+//            font.drawTextXy("touch " + i + ": " + input.touchPoints[i].lastX + ", " + input.touchPoints[i].lastY,
+//                            10,
+//                            140 + i * 9, "nokia");
+//        }
+//    }
 
-    for (var i = 0; i < input.touchPoints.length; i++) {
-        if (input.touchPoints[i].lastX !== undefined) {
-            font.drawTextXy("touch " + i + ": " + input.touchPoints[i].lastX + ", " + input.touchPoints[i].lastY,
-                            10,
-                            140 + i * 9, "nokia");
+    var firstRow = Math.round(app.viewCenter.x - (160 / app.viewScale)) - 1;
+    var firstCol = Math.round(app.viewCenter.y - (120 / app.viewScale)) - 1;
+    var lastRow = Math.round(app.viewCenter.x + (160 / app.viewScale)) + 1;
+    var lastCol = Math.round(app.viewCenter.y + (120 / app.viewScale)) + 1;
+    
+    if (firstRow < 0)
+        firstRow = 0;
+    if (lastRow >= 100)
+        lastRow = 100;
+    if (firstCol < 0)
+        firstCol = 0;
+    if (lastCol >= 100)
+        lastCol = 100;
+    
+    for (var row = firstRow; row < lastRow; row++) {
+        for (var col = firstCol; col < lastCol; col++) {
+            var x = 160 + (col - app.viewCenter.x) * app.viewScale;
+            var y = 120 + (row - app.viewCenter.y) * app.viewScale;
+            font.drawTextXy(row + "," + col,
+                            x, y,
+                            "nokia");
         }
     }
-
+    
+    font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
+                    0, 0, "nokia");
+    
     //----------------------------------------------------------------------------------------------
     // draw textured quad from first FBO to screen
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
@@ -74,7 +119,7 @@ var displayFunc = function (elapsed) {
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
 
-//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.Y_RESOLUTION);
+//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
 //    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
@@ -90,6 +135,20 @@ var displayFunc = function (elapsed) {
 
 var animateFun = function (elapsed) {
 
+    if (input.touchPoints[0] != undefined) {
+        if (input.touchPoints[0].moved === true) {
+            app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
+            app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
+        }
+        else {
+            app.viewCenter.xSpeed = 0;
+            app.viewCenter.ySpeed = 0;
+        }
+    }
+    
+    app.viewCenter.x += (app.viewCenter.xSpeed * app.xResolution / app.mainCanvas.width) / app.viewScale;
+    app.viewCenter.y += (app.viewCenter.ySpeed * app.yResolution / app.mainCanvas.height) / app.viewScale;
+    
     // Update stuff based on timers and keys
     //angle += 180.0 * 0.001;
 
