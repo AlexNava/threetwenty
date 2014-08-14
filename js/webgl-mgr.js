@@ -1,8 +1,8 @@
 var WebGlMgr = function () {
 
     this.mainCanvas = null;
-    this.X_RESOLUTION = 0;
-    this.Y_RESOLUTION = 0;
+    this.xResolution = 0;
+    this.yResolution = 0;
 
     this.startFunc = function() {};
     this.displayFunc = function() {};
@@ -40,8 +40,8 @@ var WebGlMgr = function () {
 
     // Initialization ------------------
     this.init = function (canvasName, hResolution, vResolution) {
-        this.X_RESOLUTION = hResolution;
-        this.Y_RESOLUTION = vResolution;
+        this.xResolution = hResolution;
+        this.yResolution = vResolution;
 
         this.mainCanvas = document.getElementById(canvasName);
 
@@ -55,7 +55,7 @@ var WebGlMgr = function () {
         this.mvMatrix = mat4.create();
         this.perspectiveProjMatrix = mat4.create();
         this.orthoProjMatrix = mat4.create();
-        mat4.ortho(this.orthoProjMatrix, 0, this.X_RESOLUTION, 0, this.Y_RESOLUTION, -1, 1);
+        mat4.ortho(this.orthoProjMatrix, 0, this.xResolution, 0, this.yResolution, -1, 1);
         
         // Builtin framebuffer objects -----
         this.rttFramebuffer1 = null;
@@ -91,8 +91,8 @@ var WebGlMgr = function () {
         // Two separate FBOs
         this.rttFramebuffer1 = this.gl.createFramebuffer();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
-        this.rttFramebuffer1.width = this.X_RESOLUTION;
-        this.rttFramebuffer1.height = this.Y_RESOLUTION;
+        this.rttFramebuffer1.width = this.xResolution;
+        this.rttFramebuffer1.height = this.yResolution;
 
         // Two textures for color
         // Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
@@ -118,8 +118,8 @@ var WebGlMgr = function () {
         // 2nd FBO
         this.rttFramebuffer2 = this.gl.createFramebuffer();
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
-        this.rttFramebuffer2.width = this.X_RESOLUTION;
-        this.rttFramebuffer2.height = this.Y_RESOLUTION;
+        this.rttFramebuffer2.width = this.xResolution;
+        this.rttFramebuffer2.height = this.yResolution;
 
         // 2nd texture
         this.rttTexture2 = this.gl.createTexture();
@@ -225,9 +225,9 @@ var WebGlMgr = function () {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
         quadVertices = [
             0.0, 0.0, 0.0, 1.0,
-            0.0, this.Y_RESOLUTION, 0.0, 1.0,
-            this.X_RESOLUTION, 0.0, 0.0, 1.0,
-            this.X_RESOLUTION, this.Y_RESOLUTION, 0.0, 1.0
+            0.0, this.yResolution, 0.0, 1.0,
+            this.xResolution, 0.0, 0.0, 1.0,
+            this.xResolution, this.yResolution, 0.0, 1.0
         ];
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(quadVertices), this.gl.STATIC_DRAW);
         this.screenVertexBuffer.itemSize = 4;

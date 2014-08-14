@@ -38,7 +38,7 @@ var displayFunc = function (elapsed) {
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
-    app.gl.viewport(0, 0, app.X_RESOLUTION, app.Y_RESOLUTION);
+    app.gl.viewport(0, 0, app.xResolution, app.yResolution);
     app.gl.enable(app.gl.DEPTH_TEST);
 
 //    app.gl.clearColor(0.5, 0.5, 0.5, 1.0);
@@ -55,8 +55,8 @@ var displayFunc = function (elapsed) {
         app.gl.activeTexture(app.gl.TEXTURE0);
         app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
         app.gl.uniform1i(app.shaders["blur"].uSampler, 0);
-        app.gl.uniform1f(app.shaders["blur"].uTextureW, app.X_RESOLUTION);
-        app.gl.uniform1f(app.shaders["blur"].uTextureH, app.Y_RESOLUTION);
+        app.gl.uniform1f(app.shaders["blur"].uTextureW, app.xResolution);
+        app.gl.uniform1f(app.shaders["blur"].uTextureH, app.yResolution);
         app.gl.uniform1f(app.shaders["blur"].uBlurAmount, blurriness);
         app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
         app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.1);
@@ -96,7 +96,7 @@ var displayFunc = function (elapsed) {
     //----------------------------------------------------------------------------------------------
     // Intermediate step: draw textured quad from first FBO to second FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
-    app.gl.viewport(0, 0, app.X_RESOLUTION, app.Y_RESOLUTION);
+    app.gl.viewport(0, 0, app.xResolution, app.yResolution);
     app.gl.disable(app.gl.DEPTH_TEST);
 
     identityMv = mat4.create();
@@ -106,8 +106,8 @@ var displayFunc = function (elapsed) {
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
     app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
-    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.X_RESOLUTION);
-    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.Y_RESOLUTION);
+    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.xResolution);
+    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.yResolution);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
@@ -131,7 +131,7 @@ var displayFunc = function (elapsed) {
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
 
-//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.Y_RESOLUTION);
+//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
 //    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
 
     app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
