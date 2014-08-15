@@ -117,6 +117,7 @@ var tileCorner = function(downLeft, downRight, upRight, upLeft, textureSize) {
 
 var displayFunc = function(elapsed) {
 
+
     animateFun(elapsed);
     checkResize(app.mainCanvas);
 
