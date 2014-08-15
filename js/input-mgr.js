@@ -66,7 +66,7 @@ InputMgr.prototype.setup = function () {
         function (event) {
             event.preventDefault();
             for (var i = 0; i < event.changedTouches.length; i++){
-                this.touchPoints[event.changedTouches[i].identifier] = {};
+                this.touchPoints[event.changedTouches[i].identifier] = undefined;
             }
         }.bind(this),
         false
@@ -87,7 +87,7 @@ InputMgr.prototype.pollTouchGestures = function() {
     this.gestureRight = false;
     this.gestureUp = false;
     this.gestureDown = false;
-    if (this.touchPoints.length > 0) {
+    if (this.touchPoints[0] !== undefined) {
         if (this.touchPoints[0].checked === false) {
             var deltaX = this.touchPoints[0].currentX - this.touchPoints[0].lastX;
             var deltaY = this.touchPoints[0].currentY - this.touchPoints[0].lastY;

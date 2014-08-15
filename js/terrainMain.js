@@ -5,7 +5,7 @@ var startFunc = function () {
         app.terraingrid[row] = new Array(100);
             for (var col = 0; col < 100; col++) {
                 var test = Math.random();
-                if (test < 0.5)
+                if (test < 0.6)
                     app.terraingrid[row][col] = 0;
                 else
                     app.terraingrid[row][col] = 1;                    
@@ -117,7 +117,6 @@ var tileCorner = function(downLeft, downRight, upRight, upLeft, textureSize) {
 
 var displayFunc = function(elapsed) {
 
-
     animateFun(elapsed);
     checkResize(app.mainCanvas);
 
@@ -130,9 +129,10 @@ var displayFunc = function(elapsed) {
     app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT);
 
     app.gl.disable(app.gl.DEPTH_TEST);
-
     
     var identityMv = mat4.create();
+    app.gl.useProgram(app.shaders["texture"]);
+    
     app.gl.uniform1f(app.shaders["texture"].uTextureW, app.xResolution);
     app.gl.uniform1f(app.shaders["texture"].uTextureH, app.yResolution);
 
@@ -197,24 +197,36 @@ var displayFunc = function(elapsed) {
     // draw textured quad from first FBO to screen
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
     app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
-
-    //app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
-    app.gl.useProgram(app.shaders["texture"]);
+    
+    app.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    app.gl.clear(app.gl.COLOR_BUFFER_BIT);
 
     app.gl.activeTexture(app.gl.TEXTURE0);
     app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
 
-//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-//    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
-
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
+    if (app.shaders["CRT"] !== undefined) {
+        app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
+        app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution * 2);
+        app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.2);
+        app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
+    }
+    else {
+        app.gl.useProgram(app.shaders["texture"]);        
+        app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
+    }
 
     // Draw stuff
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-
+    if (app.shaders["CRT"] !== undefined) {
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
+        app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+        app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    } else {
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
+        app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+        app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+        app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+    }
     app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
 };
 
