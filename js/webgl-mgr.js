@@ -266,6 +266,15 @@ var WebGlMgr = function () {
         this.loadShaderSources("rect2d", Rect2DTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("rect2d", ["aVertexPosition", "aTextureCoord"]);
         this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler"]);
+
+        var identityMv = mat4.create();
+        this.gl.useProgram(this.shaders["texture"]);
+
+        this.gl.uniform1f(this.shaders["texture"].uTextureW, this.xResolution);
+        this.gl.uniform1f(this.shaders["texture"].uTextureH, this.yResolution);
+
+        this.gl.uniformMatrix4fv(this.shaders["texture"].uMVMatrix, false, identityMv);
+        this.gl.uniformMatrix4fv(this.shaders["texture"].uPMatrix, false, this.orthoProjMatrix);        
     };
 
     // Shader utils --------------------

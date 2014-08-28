@@ -17,7 +17,7 @@ var startFunc = function () {
     app.viewCenter.y = 50;
     app.viewCenter.xSpeed = 0;
     app.viewCenter.ySpeed = 0;
-    app.viewScale = 32; // pixels x unit
+    app.viewScale = 16; // pixels x unit
 
     app.mvMatrix = mat4.create();
     app.perspectiveProjMatrix = mat4.create();
@@ -129,16 +129,7 @@ var displayFunc = function(elapsed) {
     app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT);
 
     app.gl.disable(app.gl.DEPTH_TEST);
-    
-    var identityMv = mat4.create();
-    app.gl.useProgram(app.shaders["texture"]);
-    
-    app.gl.uniform1f(app.shaders["texture"].uTextureW, app.xResolution);
-    app.gl.uniform1f(app.shaders["texture"].uTextureH, app.yResolution);
 
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uMVMatrix, false, identityMv);
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
-    
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
@@ -207,7 +198,7 @@ var displayFunc = function(elapsed) {
     if (app.shaders["CRT"] !== undefined) {
         app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
         app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution * 2);
-        app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.2);
+        app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.25);
         app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
     }
     else {
@@ -236,6 +227,8 @@ var animateFun = function (elapsed) {
         if (input.touchPoints[0].checked === false) {
             app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
             app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
+            app.viewCenter.xSpeed *= (app.xResolution / app.mainCanvas.width) / app.viewScale;
+            app.viewCenter.ySpeed *= (app.yResolution / app.mainCanvas.height) / app.viewScale;
         }
         else {
             app.viewCenter.xSpeed = 0;
@@ -243,8 +236,8 @@ var animateFun = function (elapsed) {
         }
     }
     
-    app.viewCenter.x += (app.viewCenter.xSpeed * app.xResolution / app.mainCanvas.width) / app.viewScale;
-    app.viewCenter.y += (app.viewCenter.ySpeed * app.yResolution / app.mainCanvas.height) / app.viewScale;
+    app.viewCenter.x += app.viewCenter.xSpeed;
+    app.viewCenter.y += app.viewCenter.ySpeed;
     
     if (app.viewCenter.x < 0)
         app.viewCenter.x = 0;
