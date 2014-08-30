@@ -101,10 +101,10 @@ var checkResize = function(canvas) {
     if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
         lastSizeH = window.innerHeight;
         lastSizeW = window.innerWidth;
-        var pixelRatio = window.devicePixelRatio || 1;
+        var pixelRatio = window.devicePixelRatio;
         
-        canvas.width = lastSizeW * pixelRatio;
-        canvas.height = lastSizeH * pixelRatio;
+        canvas.width = lastSizeW;
+        canvas.height = lastSizeH;
     }
 };
 
