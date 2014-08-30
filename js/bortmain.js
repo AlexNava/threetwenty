@@ -91,7 +91,7 @@ var displayFunc = function(elapsed) {
 
 var animateFun = function (elapsed) {
 
-    input.pollTouchGestures();
+    //input.pollTouchGestures();
 };
 
 var lastSizeW = 0;
@@ -113,7 +113,7 @@ app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
 
-var input = new InputMgr();
+//var input = new InputMgr();
 
 var font = new FontMgr(app);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");

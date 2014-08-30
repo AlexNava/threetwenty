@@ -2,6 +2,9 @@ var FontMgr = function (glMgrObject) {
     this.glMgr = glMgrObject;
     this.fonts = [];
     this.currentFont = "";
+    this.currentScale = 1;
+    this.currentHAlignment = "left";
+    this.currentColor = [1, 1, 1, 1];
 };
 
 FontMgr.prototype.loadFontFiles = function (alias, xmlFile, bitmapFile) {
