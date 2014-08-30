@@ -101,7 +101,7 @@ var checkResize = function(canvas) {
     if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
         lastSizeH = window.innerHeight;
         lastSizeW = window.innerWidth;
-        var pixelRatio = window.devicePixelRatio;
+        //var pixelRatio = window.devicePixelRatio;
         
         canvas.width = lastSizeW;
         canvas.height = lastSizeH;
