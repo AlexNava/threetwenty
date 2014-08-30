@@ -103,8 +103,8 @@ var checkResize = function(canvas) {
         lastSizeW = window.innerWidth;
         var pixelRatio = window.devicePixelRatio || 1;
         
-        canvas.width = lastSizeW = pixelRatio;
-        canvas.height = lastSizeH = pixelRatio;
+        canvas.width = lastSizeW * pixelRatio;
+        canvas.height = lastSizeH * pixelRatio;
     }
 };
 
