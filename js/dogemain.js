@@ -58,7 +58,7 @@ var displayFunc = function (elapsed) {
         app.gl.uniform1f(app.shaders["blur"].uTextureH, app.yResolution);
         app.gl.uniform1f(app.shaders["blur"].uBlurAmount, blurriness);
         app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
-        app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.1);
+        app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.25);
 
         app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
         app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
@@ -75,20 +75,26 @@ var displayFunc = function (elapsed) {
     //app.gl.clear(app.gl.DEPTH_BUFFER_BIT);
     // End of blur-out
 
-    app.useTexture("snoop");
-
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
     app.gl.uniform1i(app.shaders["quad2d"].uSampler, 0);
 
+    app.useTexture("snoop");
+    app.quad2DColor(1.0, 1.0, 1.0, 1.0);
     app.texturedQuad2D(160, 120, 120, (angle * 3.14159 / 180.0));
 
-    app.texturedRectangle(10, 10, 73, 14,
+    app.rect2DColor(1.0, 1.0, 1.0, 1.0);
+    app.texturedRect2D(10, 110, 73, 14,
                           55, 210, 73, 14,
                           512, 512);
 
-    font.drawTextXy("Nokia font 8pt :)", 10, 40, "nokia");
-    font.drawTextXy("Very brown fox, much quick, such jump, concern...", 40, 110, "nokia");
+    font.setAlignment("center");
+    font.setScale(1);
+    font.setColor(1.0, 1.0, 1.0, 1.0);
+    font.drawTextXy("Very brown fox, much quick, such jump...", 160, 210, "nokia");
+    font.setScale(4);
+    font.setColor(0.0, 0.5, 1.0, 1.0);
+    font.drawTextXy("Concern.", 160, 10, "nokia");
     
     
 

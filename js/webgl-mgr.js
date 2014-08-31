@@ -98,7 +98,8 @@ var WebGlMgr = function () {
     };
 
     this.initGL = function() {
-        this.gl = this.mainCanvas.getContext("webgl") || this.mainCanvas.getContext("experimental-webgl");
+        this.gl = this.mainCanvas.getContext("webgl", { alpha: false })
+            || this.mainCanvas.getContext("experimental-webgl", { alpha: false });
         this.gl.viewportWidth = this.mainCanvas.width;
         this.gl.viewportHeight = this.mainCanvas.height;
 
@@ -276,26 +277,32 @@ var WebGlMgr = function () {
         // Init basic texture shader
         this.loadShaderSources("texture", BasicTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("texture", ["aVertexPosition", "aTextureCoord"]);
-        this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler"]);
+        this.shaderUniforms("texture", ["uPMatrix", "uMVMatrix", "uSampler", "uBaseColor"]);
 
         // Init textured quads shader
         this.loadShaderSources("quad2d", Quad2DTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("quad2d", ["aVertexPosition", "aTextureCoord"]);
-        this.shaderUniforms("quad2d", ["uPMatrix", "uCenterPosition", "uScale", "uRotation", "uSampler"]);
+        this.shaderUniforms("quad2d", ["uPMatrix", "uCenterPosition", "uScale", "uRotation", "uSampler", "uBaseColor"]);
     
         // Init textured aligned rectangle shader
         this.loadShaderSources("rect2d", Rect2DTextureVertexShader, BasicTextureFragmentShader);
         this.shaderAttributeArrays("rect2d", ["aVertexPosition", "aTextureCoord"]);
-        this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler"]);
+        this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler", "uBaseColor"]);
 
         var identityMv = mat4.create();
+
         this.gl.useProgram(this.shaders["texture"]);
-
-        this.gl.uniform1f(this.shaders["texture"].uTextureW, this.xResolution);
-        this.gl.uniform1f(this.shaders["texture"].uTextureH, this.yResolution);
-
         this.gl.uniformMatrix4fv(this.shaders["texture"].uMVMatrix, false, identityMv);
         this.gl.uniformMatrix4fv(this.shaders["texture"].uPMatrix, false, this.orthoProjMatrix);        
+        this.gl.uniform4fv(this.shaders["texture"].uBaseColor, [1.0, 1.0, 1.0, 1.0]);
+
+        this.gl.useProgram(this.shaders["quad2d"]);
+        this.gl.uniformMatrix4fv(this.shaders["quad2d"].uPMatrix, false, this.orthoProjMatrix);        
+        this.gl.uniform4fv(this.shaders["quad2d"].uBaseColor, [1.0, 1.0, 1.0, 1.0]);
+
+        this.gl.useProgram(this.shaders["rect2d"]);
+        this.gl.uniformMatrix4fv(this.shaders["rect2d"].uPMatrix, false, this.orthoProjMatrix);        
+        this.gl.uniform4fv(this.shaders["rect2d"].uBaseColor, [1.0, 1.0, 1.0, 1.0]);
     };
 
     // Shader utils --------------------
@@ -414,12 +421,26 @@ var WebGlMgr = function () {
     };
 
     // Miscellaneous 2D drawing --------
-    this.lastFunction = -1;
+    this.drawFunctions = {
+        QUAD2D:   0,
+        RECT2D:   1,
+        INVALID: -1
+    };
+        
+    this.lastFunction = this.drawFunctions.INVALID;
+    
+    this.quad2DColor = function(r, g, b, a) {
+        var shad = this.shaders["quad2d"];
+        
+        this.gl.useProgram(shad);    
+
+        this.gl.uniform4fv(shad.uBaseColor, [r, g, b, a]);
+    };
     
     this.texturedQuad2D = function(centerX, centerY, size, rotation) {
         var shad = this.shaders["quad2d"];
         
-        if (this.lastFunction !== 1)
+        if (this.lastFunction !== this.drawFunctions.QUAD2D)
         {
             this.gl.useProgram(shad);    
 
@@ -439,15 +460,23 @@ var WebGlMgr = function () {
     
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.quadVertexPosBuffer.numItems);
         
-        this.lastFunction = 1;
+        this.lastFunction = this.drawFunctions.QUAD2D;
     };
 
-    this.texturedRectangle = function(bottomLeftX, bottomLeftY, width, height,
-                                      bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight,
-                                      textureWidth, textureHeight) {
+    this.rect2DColor = function(r, g, b, a) {
         var shad = this.shaders["rect2d"];
         
-        if (this.lastFunction !== 2)
+        this.gl.useProgram(shad);    
+
+        this.gl.uniform4fv(shad.uBaseColor, [r, g, b, a]);
+    };
+
+    this.texturedRect2D = function(bottomLeftX, bottomLeftY, width, height,
+                                   bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight,
+                                   textureWidth, textureHeight) {
+        var shad = this.shaders["rect2d"];
+        
+        if (this.lastFunction !== this.drawFunctions.RECT2D)
         {
             this.gl.useProgram(shad);    
 
@@ -469,7 +498,7 @@ var WebGlMgr = function () {
     
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.rectVertexPosBuffer.numItems);
 
-        this.lastFunction = 2;
+        this.lastFunction = this.drawFunctions.RECT2D;
     };
 
 };

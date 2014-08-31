@@ -131,10 +131,6 @@ var displayFunc = function(elapsed) {
     app.gl.enable(app.gl.BLEND);
     app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
-//    app.texturedRectangle(10, 10, 128, 128,
-//                          0, 0, 64, 64,
-//                          64, 64);
-
 //    font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
 //                    10, 130, "nokia");
 //
@@ -171,8 +167,8 @@ var displayFunc = function(elapsed) {
                                       app.terraingrid[row + 1][col],
                                       64);
                                       
-            app.texturedRectangle(x, y, app.viewScale, app.viewScale,
-                                  texCoord.x, texCoord.y, 16, 16, 64, 64);
+            app.texturedRect2D(x, y, app.viewScale, app.viewScale,
+                               texCoord.x, texCoord.y, 16, 16, 64, 64);
 //            font.drawTextXy(row + "," + col,
 //                            x, y,
 //                            "nokia");

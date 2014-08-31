@@ -1,9 +1,15 @@
 var FontMgr = function (glMgrObject) {
+    this.alignments = {
+        LEFT: 0,
+        CENTER: 1,
+        RIGHT: 2
+    };
+    
     this.glMgr = glMgrObject;
     this.fonts = [];
     this.currentFont = "";
-    this.currentScale = 1;
-    this.currentHAlignment = "left";
+    this.currentScale = 1.0;
+    this.currentHAlignment = this.alignments.LEFT;
     this.currentColor = [1, 1, 1, 1];
 };
 
@@ -52,26 +58,70 @@ FontMgr.prototype.loadFontFiles = function (alias, xmlFile, bitmapFile) {
     this.glMgr.loadTexture("Font-texture-" + alias, bitmapFile);
 };
 
+FontMgr.prototype.setAlignment = function(alignment) {
+    if (alignment.toUpperCase() == "LEFT") {
+        this.currentHAlignment = this.alignments.LEFT;
+    }
+    else if (alignment.toUpperCase() == "CENTER") {
+        this.currentHAlignment = this.alignments.CENTER;
+    }
+    else if (alignment.toUpperCase() == "RIGHT") {
+        this.currentHAlignment = this.alignments.RIGHT;
+    }
+}
+
+FontMgr.prototype.setScale = function(scale) {
+    this.currentScale = scale;
+}
+
+FontMgr.prototype.setColor = function(r, g, b, a) {
+    this.currentColor = [r, g, b, a];
+}
+
 FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
     var currentFont = this.fonts[fontAlias];
     if (currentFont === undefined) {
         return;
     }
     
-    var currentX = x;
-    
+    // Calculate length
+    var textLength = 0;
+    if (this.currentHAlignment !== this.alignments.LEFT) // Not needed for this
+    {
+        for (var i = 0; i < text.length; i++) {
+            var id = text.charCodeAt(i);
+            var currentChar = currentFont.charArray[id];
+            if (currentChar !== undefined) {
+                textLength += this.currentScale * currentChar.xadvance;
+            }
+        }
+    }
+
+    var currentX;
+    if (this.currentHAlignment === this.alignments.LEFT) {
+        currentX = x;
+    }
+    else if (this.currentHAlignment === this.alignments.CENTER) {
+        currentX = x - (textLength / 2);
+    }
+    else if (this.currentHAlignment === this.alignments.RIGHT) {
+        currentX = x - textLength;
+    }
+
+    // Draw text
+    this.glMgr.rect2DColor(this.currentColor[0], this.currentColor[1], this.currentColor[2], this.currentColor[3]);
     this.glMgr.useTexture("Font-texture-" + fontAlias);
     for (var i = 0; i < text.length; i++) {
         var id = text.charCodeAt(i);
         var currentChar = currentFont.charArray[id];
         if (currentChar !== undefined) {
-            this.glMgr.texturedRectangle(currentX, y,
-                                         currentChar.width, currentChar.height,
-                                         currentChar.x, currentChar.y,
-                                         currentChar.width, currentChar.height,
-                                         currentFont.scaleW, currentFont.scaleH);
+            this.glMgr.texturedRect2D(currentX, y,
+                                      this.currentScale * currentChar.width, this.currentScale * currentChar.height,
+                                      currentChar.x, currentChar.y,
+                                      currentChar.width, currentChar.height,
+                                      currentFont.scaleW, currentFont.scaleH);
                                          
-            currentX += currentChar.xadvance;
+            currentX += this.currentScale * currentChar.xadvance;
         }
     }
 }
