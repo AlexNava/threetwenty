@@ -1,6 +1,6 @@
 var startFunc = function () {
     var goFullscreen = function() {
-        var elem = document.querySelector('canvas');
+        var elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
         } else if (elem.msRequestFullscreen) {
@@ -50,6 +50,8 @@ var displayFunc = function(elapsed) {
                     100, 100, "nokia");
     font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
                     0, 0, "nokia");    
+    font.drawTextXy("Document body size: " + document.body.clientWidth + "x" + document.body.clientHeight,
+                    0, 10, "nokia");    
     //----------------------------------------------------------------------------------------------
     // draw textured quad from first FBO to screen
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
