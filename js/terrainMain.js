@@ -116,9 +116,7 @@ var tileCorner = function(downLeft, downRight, upRight, upLeft, textureSize) {
 }
 
 var displayFunc = function(elapsed) {
-
     animateFun(elapsed);
-    checkResize(app.mainCanvas);
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
@@ -251,24 +249,12 @@ var animateFun = function (elapsed) {
     input.pollTouchGestures();
 };
 
-var lastSizeW = 0;
-var lastSizeH = 0;
-
-var checkResize = function(canvas) {
-    if ((window.innerWidth !== lastSizeW) || (window.innerHeight !== lastSizeH)) {
-        lastSizeH = window.innerHeight;
-        lastSizeW = window.innerWidth;
-
-        canvas.width = lastSizeW;
-        canvas.height = lastSizeH;
-    }
-};
-
 
 var app = new WebGlMgr();
 app.init("MainCanvas", 320, 240);
 app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
+window.addEventListener("resize", app.checkResize.bind(app));
 
 var input = new InputMgr();
 

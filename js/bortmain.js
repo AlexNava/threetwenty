@@ -31,9 +31,7 @@ initShaders = function() {
 };
 
 var displayFunc = function(elapsed) {
-
     animateFun(elapsed);
-    //checkResize(app.mainCanvas);
 
     // draw scene on 1st FBO
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
