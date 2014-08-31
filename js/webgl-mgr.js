@@ -31,12 +31,25 @@ var WebGlMgr = function () {
     };
 
     this.start = function() {
+	this.checkResize();
         if (this.startFunc !== null) {
             this.startFunc();
         }
 
         this.tick();
     };
+
+	this.checkResize = function() {
+		var width = window.innerWidth;
+		var height = window.innerHeight;
+		var pixelRatio = window.devicePixelRatio;
+		
+		this.mainCanvas.width = width * pixelRatio;
+		this.mainCanvas.height = height * pixelRatio;
+
+		this.mainCanvas.style.width = width + 'px';
+		this.mainCanvas.style.height = height + 'px';
+	};
 
     // Initialization ------------------
     this.init = function (canvasName, hResolution, vResolution) {
