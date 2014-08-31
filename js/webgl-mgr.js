@@ -44,6 +44,14 @@ var WebGlMgr = function () {
 		var height = window.innerHeight;
 		var pixelRatio = window.devicePixelRatio;
 		
+        if ((document.fullscreenElement === null)
+            || (document.mozFullScreenElement === null)
+            || (document.webkitFullscreenElement === null)
+            || (document.msFullscreenElement === null)) {
+            // Workaround, if we are not fullscreen don't take pixel ratio into account
+            pixelRatio = 1;
+        }
+            
 		this.mainCanvas.width = width * pixelRatio;
 		this.mainCanvas.height = height * pixelRatio;
 
