@@ -89,7 +89,7 @@ var displayFunc = function (elapsed) {
                           512, 512);
 
     font.setAlignment("center");
-    font.setScale(1);
+    font.setScale(1.0);
     font.setColor(1.0, 1.0, 1.0, 1.0);
     font.drawTextXy("Very brown fox, much quick, such jump...", 160, 210, "nokia");
     font.setScale(4);

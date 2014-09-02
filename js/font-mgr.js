@@ -102,7 +102,7 @@ FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
         currentX = x;
     }
     else if (this.currentHAlignment === this.alignments.CENTER) {
-        currentX = x - (textLength / 2);
+        currentX = Math.floor(x - (textLength / 2));
     }
     else if (this.currentHAlignment === this.alignments.RIGHT) {
         currentX = x - textLength;
