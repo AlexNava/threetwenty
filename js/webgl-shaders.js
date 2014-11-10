@@ -41,7 +41,6 @@ var BasicTextureVertexShader = "\
 	}";
 
 // Adaptation for centered quads (or any other geometry)
-// Todo: arbitrary rectangle selection?
 var Quad2DTextureVertexShader = "\
 	attribute vec4 aVertexPosition;\
 	attribute vec2 aTextureCoord;\
@@ -67,7 +66,6 @@ var Quad2DTextureVertexShader = "\
 	}";
 
 // Adaptation for aligned rectangles (like text...)
-// Todo: arbitrary rectangle selection
 var Rect2DTextureVertexShader = "\
 	attribute vec4 aVertexPosition;\
 	attribute vec2 aTextureCoord;\

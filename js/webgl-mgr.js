@@ -105,7 +105,7 @@ var WebGlMgr = function () {
 
 		if (!this.gl)
 		{
-			alert("Could not initialise WebGL, sorry :-(");
+			alert("Could not initialise WebGL");
 		}
 	};
 
@@ -469,9 +469,6 @@ var WebGlMgr = function () {
 		this.gl.useProgram(shad);    
 
 		this.gl.uniform4fv(shad.uBaseColor, [r, g, b, a]);
-	};
-
-	this.rect2DRotation = function(rotation) {
 	};
 
 	this.texturedRect2D = function(bottomLeftX, bottomLeftY, width, height,
