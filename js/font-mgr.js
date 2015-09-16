@@ -115,7 +115,7 @@ FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
 
 	// Draw text
 	this.glMgr.rect2DColor(this.currentColor[0], this.currentColor[1], this.currentColor[2], this.currentColor[3]);
-	this.glMgr.rect2DRotation(this.currentRotation);
+	//this.glMgr.rect2DRotation(this.currentRotation);
 	this.glMgr.useTexture("Font-texture-" + fontAlias);
 	for (var i = 0; i < text.length; i++) {
 		var id = text.charCodeAt(i);
