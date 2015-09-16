@@ -129,25 +129,27 @@ var displayFunc = function (elapsed) {
     // draw textured quad from second FBO to screen
     app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
     app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
+	
+	if (app.shaders["CRT"] !== undefined) {
+		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
+		//app.gl.useProgram(app.shaders["texture"]);
 
-    //app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
-    app.gl.useProgram(app.shaders["texture"]);
+		app.gl.activeTexture(app.gl.TEXTURE0);
+		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
 
-    app.gl.activeTexture(app.gl.TEXTURE0);
-    app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
+		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.2);
 
-//    app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-//    app.gl.uniform1f(app.shaders["CRT"].uBarrel, 0.0);
+		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 
-    app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
+		// Draw stuff
+		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
+		app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+		app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
 
-    // Draw stuff
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-    app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-    app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-
-    app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+		app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+	}
 };
 
 var animateFun = function (elapsed) {

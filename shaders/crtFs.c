@@ -28,7 +28,7 @@ void main()
         discard;
     }
         
-    float ramp = fract(distorted.t * float(uScanlines) * 0.5 + 0.5) - 0.5;
+    float ramp = fract(distorted.t * float(uScanlines) + 0.5) - 0.5;
     float scanlineNear = 2.0 * abs(ramp);
     bool evenLine = (ramp > 0.0);
     float discretizedTextureT = floor(distorted.t * float(uScanlines)) / float(uScanlines);
