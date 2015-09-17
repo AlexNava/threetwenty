@@ -26,7 +26,7 @@ initShaders = function() {
     // CRT
     app.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
         app.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
-        app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion"]);
+        app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette"]);
     });
 };
 
@@ -67,6 +67,7 @@ var displayFunc = function(elapsed) {
         app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
         app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
         app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.25);
+		app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
         app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
     }
     else {
