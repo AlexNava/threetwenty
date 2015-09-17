@@ -66,7 +66,7 @@ var displayFunc = function(elapsed) {
     if (app.shaders["CRT"] !== undefined) {
         app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
         app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-        app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.25);
+        app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.25);
         app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
     }
     else {
