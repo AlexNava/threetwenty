@@ -4,7 +4,7 @@ var FontMgr = function (glMgrObject) {
 		CENTER: 1,
 		RIGHT: 2
 	};
-	
+
 	this.glMgr = glMgrObject;
 	this.fonts = [];
 	this.currentFont = "";
@@ -28,14 +28,14 @@ FontMgr.prototype.loadFontFiles = function (alias, xmlFile, bitmapFile) {
 			var common = font.getElementsByTagName("common")[0];
 			var chars = font.getElementsByTagName("chars")[0];
 			var charCount = chars.getElementsByTagName("char").length;
-			  
+
 			tempFont.scaleW = parseInt(common.getAttribute("scaleW"));
 			tempFont.scaleH = parseInt(common.getAttribute("scaleH"));
 
 			for (var i = 0; i < charCount; i++) {
 				var xmlChar = chars.getElementsByTagName("char")[i];
 				var tempChar = {};
-				
+
 				tempChar.id =        parseInt(xmlChar.getAttribute("id"));
 				tempChar.width =     parseInt(xmlChar.getAttribute("width"));
 				tempChar.height =    parseInt(xmlChar.getAttribute("height"));
@@ -55,7 +55,7 @@ FontMgr.prototype.loadFontFiles = function (alias, xmlFile, bitmapFile) {
 		}.bind(this),
 		"text"
 	);
-	
+
 	this.glMgr.loadTexture("Font-texture-" + alias, bitmapFile);
 };
 
@@ -88,7 +88,7 @@ FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
 	if (currentFont === undefined) {
 		return;
 	}
-	
+
 	// Calculate length
 	var textLength = 0;
 	if (this.currentHAlignment !== this.alignments.LEFT) // Not needed for this
@@ -122,11 +122,11 @@ FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
 		var currentChar = currentFont.charArray[id];
 		if (currentChar !== undefined) {
 			this.glMgr.texturedRect2D(currentX, y,
-									  this.currentScale * currentChar.width, this.currentScale * currentChar.height,
-									  currentChar.x, currentChar.y,
-									  currentChar.width, currentChar.height,
-									  currentFont.scaleW, currentFont.scaleH);
-										 
+			                          this.currentScale * currentChar.width, this.currentScale * currentChar.height,
+			                          currentChar.x, currentChar.y,
+			                          currentChar.width, currentChar.height,
+			                          currentFont.scaleW, currentFont.scaleH);
+
 			currentX += this.currentScale * currentChar.xadvance;
 		}
 	}
