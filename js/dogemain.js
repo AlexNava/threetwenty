@@ -138,7 +138,7 @@ var displayFunc = function (elapsed) {
 		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
 
 		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 1.2);
+		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);
 
 		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 
