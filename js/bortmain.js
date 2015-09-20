@@ -46,10 +46,17 @@ var displayFunc = function(elapsed) {
 	app.gl.enable(app.gl.BLEND);
 	app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
-font.setAlignment(font.CENTER);
-	font.drawTextXy("Go fullscreen",
-	                160, 100, "nokia");
-font.setAlignment(font.LEFT);
+	font.setAlignment("CENTER");
+	if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
+		font.drawTextXy("Go fullscreen",
+		                160, 100, "nokia");
+	}
+	else {
+		font.drawTextXy("Canvas is fullscreen",
+		                160, 100, "nokia");
+	}
+
+	font.setAlignment("LEFT");
 	font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
 	                0, 0, "nokia");    
 	font.drawTextXy("Document body size: " + document.body.clientWidth + "x" + document.body.clientHeight,
