@@ -40,6 +40,22 @@ var BasicTextureVertexShader = "\
 		vTextureCoord = aTextureCoord;\
 	}";
 
+// Simple fragment shader with texture support
+var BasicTextureFragmentShader = "\
+	precision mediump float;\
+	\
+	varying vec2 vTextureCoord;\
+	uniform sampler2D uSampler;\
+	uniform vec4 uBaseColor;\
+	\
+	void main()\
+	{\
+		vec4 fragmentColor;\
+		\
+		fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
+		gl_FragColor = fragmentColor * uBaseColor;\
+	}";
+
 // Adaptation for centered quads (or any other geometry)
 var Quad2DTextureVertexShader = "\
 	attribute vec4 aVertexPosition;\
@@ -92,20 +108,4 @@ var Rect2DTextureVertexShader = "\
 		vec2 normalizedTextureCorner = uTextureCornerPosition / uTextureSize;\
 		vec2 textureScale = uTextureSelectionSize / uTextureSize;\
 		vTextureCoord = normalizedTextureCorner + aTextureCoord * textureScale;\
-	}";
-
-// Simple fragment shader with texture support
-var BasicTextureFragmentShader = "\
-	precision mediump float;\
-	\
-	varying vec2 vTextureCoord;\
-	uniform sampler2D uSampler;\
-	uniform vec4 uBaseColor;\
-	\
-	void main()\
-	{\
-		vec4 fragmentColor;\
-		\
-		fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-		gl_FragColor = fragmentColor * uBaseColor;\
 	}";
