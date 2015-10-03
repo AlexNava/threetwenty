@@ -22,7 +22,7 @@ initShaders = function() {
 	// Blur
 	app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c", function() {
 		app.shaderAttributeArrays("blur", ["aVertexPosition", "aTextureCoord"]);
-		app.shaderUniforms("blur", ["uPMatrix", "uMVMatrix", "uSampler", "uTextureW", "uTextureH", "uBlurAmount", "uBlurShift", "uClearColor"]);
+		app.shaderUniforms("blur", ["uPMatrix", "uSampler", "uTextureW", "uTextureH", "uBlurAmount", "uBlurShift", "uClearColor"]);
 	});
 	
 	// CRT
@@ -60,7 +60,6 @@ var displayFunc = function (elapsed) {
 		app.gl.uniform2f(app.shaders["blur"].uBlurShift, blurShiftX, blurShiftY);
 		app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.5, 0.5, 0.5, 0.25);
 
-		app.gl.uniformMatrix4fv(app.shaders["blur"].uMVMatrix, false, identityMv);
 		app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
 
 		// Draw stuff
