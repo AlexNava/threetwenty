@@ -31,7 +31,7 @@ var WebGlMgr = function () {
 	};
 
 	this.start = function() {
-	this.checkResize();
+		this.checkResize();
 		if (this.startFunc !== null) {
 			this.startFunc();
 		}
@@ -43,20 +43,25 @@ var WebGlMgr = function () {
 		var width = window.innerWidth;
 		var height = window.innerHeight;
 		var pixelRatio = window.devicePixelRatio;
-		
-//        if ((document.fullscreenElement === null)
-//            || (document.mozFullScreenElement === null)
-//            || (document.webkitFullscreenElement === null)
-//            || (document.msFullscreenElement === null)) {
-//            // Workaround, if we are not fullscreen don't take pixel ratio into account
-//            pixelRatio = 1;
-//        }
-			
+
 		this.mainCanvas.width = width * pixelRatio;
 		this.mainCanvas.height = height * pixelRatio;
 
 		this.mainCanvas.style.width = width + 'px';
 		this.mainCanvas.style.height = height + 'px';
+	};
+
+	this.goFullscreen = function() {
+		var elem = document.documentElement;
+		if (elem.requestFullscreen) {
+			elem.requestFullscreen();
+		} else if (elem.msRequestFullscreen) {
+			elem.msRequestFullscreen();
+		} else if (elem.mozRequestFullScreen) {
+			elem.mozRequestFullScreen();
+		} else if (elem.webkitRequestFullscreen) {
+			elem.webkitRequestFullscreen();
+		}
 	};
 
 	// Initialization ------------------
