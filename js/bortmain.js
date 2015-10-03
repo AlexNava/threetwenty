@@ -1,18 +1,5 @@
 var startFunc = function () {
-	var goFullscreen = function() {
-		var elem = document.documentElement;
-		if (elem.requestFullscreen) {
-			elem.requestFullscreen();
-		} else if (elem.msRequestFullscreen) {
-			elem.msRequestFullscreen();
-		} else if (elem.mozRequestFullScreen) {
-			elem.mozRequestFullScreen();
-		} else if (elem.webkitRequestFullscreen) {
-			elem.webkitRequestFullscreen();
-		}
-	};
-
-	window.addEventListener("click", goFullscreen);
+	window.addEventListener("click", app.goFullscreen);
 
 	initTextures();
 	initShaders();
