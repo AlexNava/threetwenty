@@ -1,4 +1,6 @@
 var startFunc = function () {
+	window.addEventListener("click", app.goFullscreen);
+
 	angle = 0.0;
 	blurriness = 0.5;
 	blurShiftX = 1.0;
