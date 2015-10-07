@@ -405,9 +405,14 @@ var WebGlMgr = function () {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
 		this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
 		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, image);
+
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		this.gl.generateMipmap(this.gl.TEXTURE_2D);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE); // Necessary for npot textures
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE); //
+
+		this.gl.generateMipmap(this.gl.TEXTURE_2D); // works even with npot textures
+
 		this.textures[textureName] = texture;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 	};
