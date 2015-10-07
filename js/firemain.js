@@ -8,7 +8,8 @@ var startFunc = function () {
 };
 
 initTextures = function() {
-	app.loadTexture("spray", "images/spray16.png");
+	app.loadTexture("spray", "images/spray8.png");
+	app.loadTexture("palette", "images/palettes.png");
 };
 
 initShaders = function() {
@@ -21,6 +22,11 @@ initShaders = function() {
 	app.loadShaderFiles("blur", "shaders/blurVs.c", "shaders/blurFs.c", function() {
 		app.shaderAttributeArrays("blur", ["aVertexPosition", "aTextureCoord"]);
 		app.shaderUniforms("blur", ["uPMatrix", "uSampler", "uTextureW", "uTextureH", "uBlurAmount", "uBlurShift", "uClearColor"]);
+	});
+	// Palette
+	app.loadShaderFiles("palette", "shaders/paletteVs.c", "shaders/paletteFs.c", function() {
+		app.shaderAttributeArrays("palette", ["aVertexPosition", "aTextureCoord"]);
+		app.shaderUniforms("palette", ["uPMatrix", "uBufSampler", "uPalSampler", "uTextureW", "uTextureH", "uSelectedPalette", "uPaletteRows"]);
 	});
 };
 
@@ -49,11 +55,13 @@ var displayFunc = function(elapsed) {
 		app.useTexture("spray");
 		app.quad2DColor(1.0, 1.0, 1.0, 1.0);
 
-		for (var i = 0; i < 1; i++){
+		for (var i = 0; i < 10; i++){
 			var x = app.xResolution * Math.random();
-			var y = app.xResolution * Math.random();
+			var y = Math.random();
 			var rotation = 360.0 * Math.random();
-			app.texturedQuad2D(x, 40, 50, rotation);
+			var size = (1 - y) * 50;
+			y *= (0.5 * app.yResolution);
+			app.texturedQuad2D(x, y, size, rotation);
 		}
 
 		// Blur FBO1 -> FBO2
@@ -87,12 +95,19 @@ var displayFunc = function(elapsed) {
 
 		app.gl.activeTexture(app.gl.TEXTURE0);
 		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		
+		app.useTexture("palette", 1);
+
 		if (app.shaders["palette"] !== undefined) {
 			app.gl.useProgram(app.shaders["palette"]);
 
-			app.gl.uniform1i(app.shaders["palette"].uSampler, 0);
-			app.gl.uniform1f(app.shaders["palette"].uSelectedPalette, 0);
-			app.gl.uniform1f(app.shaders["palette"].uPalettesRows, 8);
+			app.gl.uniform1i(app.shaders["palette"].uBufSampler, 0);
+			app.gl.uniform1i(app.shaders["palette"].uPalSampler, 1);
+			app.gl.uniform1f(app.shaders["palette"].uTextureW, app.xResolution);
+			app.gl.uniform1f(app.shaders["palette"].uTextureH, app.yResolution);
+
+			app.gl.uniform1f(app.shaders["palette"].uSelectedPalette, 2.0);
+			app.gl.uniform1f(app.shaders["palette"].uPaletteRows, 8.0);
 
 			// Draw fullscreen quad
 			app.gl.uniformMatrix4fv(app.shaders["palette"].uPMatrix, false, app.orthoProjMatrix);
