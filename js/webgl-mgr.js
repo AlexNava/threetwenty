@@ -511,4 +511,12 @@ var WebGlMgr = function () {
 		this.lastFunction = this.drawFunctions.RECT2D;
 	};
 
+	this.fullscreenRectangle = function(shaderId) {
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
+		this.gl.vertexAttribPointer(this.shaders[shaderId].aVertexPosition, this.screenVertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+		this.gl.vertexAttribPointer(this.shaders[shaderId].aTextureCoord, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
+	};
+
 };
