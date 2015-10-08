@@ -55,12 +55,26 @@ var displayFunc = function(elapsed) {
 		app.useTexture("spray");
 		app.quad2DColor(1.0, 1.0, 1.0, 1.0);
 
-		for (var i = 0; i < 10; i++){
+		for (var i = 0; i < 20; i++){
 			var x = app.xResolution * Math.random();
 			var y = Math.random();
 			var rotation = 360.0 * Math.random();
 			var size = (1 - y) * 50;
+			y *= (0.5 * app.yResolution) - 50;
+			app.texturedQuad2D(x, y, size, rotation);
+		}
+
+		app.quad2DColor(0.0, 0.0, 0.0, 1.0);
+
+		for (var i = 0; i < 4; i++){
+			var x = app.xResolution * Math.random();
+			var y = Math.random();
+			var rotation = 360.0 * Math.random();
+			var size = y * 50;
+			var alpha = 1.0 - y;
 			y *= (0.5 * app.yResolution);
+
+			app.quad2DColor(0.0, 0.0, 0.0, alpha);
 			app.texturedQuad2D(x, y, size, rotation);
 		}
 
@@ -79,15 +93,11 @@ var displayFunc = function(elapsed) {
 			app.gl.uniform1f(app.shaders["blur"].uTextureH, app.yResolution);
 			app.gl.uniform1f(app.shaders["blur"].uBlurAmount, 0.1);
 			app.gl.uniform2f(app.shaders["blur"].uBlurShift, 0, 2.0);
-			app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.0, 0.0, 0.0, 0.05);
+			app.gl.uniform4f(app.shaders["blur"].uClearColor, 0.0, 0.0, 0.0, 0.025);
+			app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
 
 			// Draw fullscreen quad
-			app.gl.uniformMatrix4fv(app.shaders["blur"].uPMatrix, false, app.orthoProjMatrix);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-			app.gl.vertexAttribPointer(app.shaders["blur"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-			app.gl.vertexAttribPointer(app.shaders["blur"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+			app.fullscreenRectangle("blur");
 		}
 		
 		// Palette FBO2 -> FBO1
@@ -105,25 +115,18 @@ var displayFunc = function(elapsed) {
 			app.gl.uniform1i(app.shaders["palette"].uPalSampler, 1);
 			app.gl.uniform1f(app.shaders["palette"].uTextureW, app.xResolution);
 			app.gl.uniform1f(app.shaders["palette"].uTextureH, app.yResolution);
-
 			app.gl.uniform1f(app.shaders["palette"].uSelectedPalette, 2.0);
 			app.gl.uniform1f(app.shaders["palette"].uPaletteRows, 8.0);
-
-			// Draw fullscreen quad
 			app.gl.uniformMatrix4fv(app.shaders["palette"].uPMatrix, false, app.orthoProjMatrix);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-			app.gl.vertexAttribPointer(app.shaders["palette"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-			app.gl.vertexAttribPointer(app.shaders["palette"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+			
+			// Draw fullscreen quad
+			app.fullscreenRectangle("palette");
 		}
 		else {
 			app.gl.useProgram(app.shaders["texture"]);        
 			app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
 
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-			app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-			app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+			app.fullscreenRectangle("texture");
 		}
 		app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
 
@@ -142,19 +145,13 @@ var displayFunc = function(elapsed) {
 			app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
 			app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-			app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-			app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+			app.fullscreenRectangle("CRT");
 		}
 		else {
 			app.gl.useProgram(app.shaders["texture"]);        
 			app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
 
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-			app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-			app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-			app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+			app.fullscreenRectangle("texture");
 		}
 
 		// Draw stuff
