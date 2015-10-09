@@ -66,16 +66,16 @@ var displayFunc = function(elapsed) {
 
 		app.quad2DColor(0.0, 0.0, 0.0, 1.0);
 
-		for (var i = 0; i < 4; i++){
+		for (var i = 0; i < 6; i++){
 			var x = app.xResolution * Math.random();
 			var y = Math.random();
 			var rotation = 360.0 * Math.random();
 			var size = y * 50;
-			var alpha = 1.0 - y;
+			var alpha = 0.5 * (1.0 - y);
 			y *= (0.5 * app.yResolution);
 
 			app.quad2DColor(0.0, 0.0, 0.0, alpha);
-			app.texturedQuad2D(x, y, size, rotation);
+			app.texturedQuad2D(x, y + 15, size, rotation);
 		}
 
 		// Blur FBO1 -> FBO2
