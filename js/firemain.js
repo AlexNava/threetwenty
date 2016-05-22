@@ -1,10 +1,16 @@
 var startFunc = function () {
 	window.addEventListener("click", app.goFullscreen);
 
+	initFBs();
 	initTextures();
 	initShaders();
 	
 	firstFrame = true;
+};
+
+initFBs = function() {
+	app.createFrameBuffer('First');
+	app.createFrameBuffer('Second');
 };
 
 initTextures = function() {
@@ -32,16 +38,15 @@ initShaders = function() {
 
 var displayFunc = function(elapsed) {
 
-	app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
+	app.useFrameBuffer('First');
 	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
-
 	app.gl.disable(app.gl.DEPTH_TEST);
 	app.gl.enable(app.gl.BLEND);
 	app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
 	if (firstFrame)
 	{
-		// clear this FBO
+		// clear FBO1
 		app.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 		app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT);
 
@@ -50,8 +55,6 @@ var displayFunc = function(elapsed) {
 	else
 	{
 		// Draw random sprites on FBO1
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
-
 		app.useTexture("spray");
 		app.quad2DColor(1.0, 1.0, 1.0, 1.0);
 
@@ -79,11 +82,9 @@ var displayFunc = function(elapsed) {
 		}
 
 		// Blur FBO1 -> FBO2
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
-		var identityMv = mat4.create();
+		app.useFrameBuffer('Second');
 
-		app.gl.activeTexture(app.gl.TEXTURE0);
-		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
+		app.useTextureFromFrameBuffer('First');
 
 		if (app.shaders["blur"] !== undefined) {
 			app.gl.useProgram(app.shaders["blur"]);
@@ -101,10 +102,9 @@ var displayFunc = function(elapsed) {
 		}
 		
 		// Palette FBO2 -> FBO1
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
+		app.useFrameBuffer('First');
 
-		app.gl.activeTexture(app.gl.TEXTURE0);
-		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		app.useTextureFromFrameBuffer('Second');
 		
 		app.useTexture("palette", 1);
 
@@ -128,16 +128,15 @@ var displayFunc = function(elapsed) {
 
 			app.fullscreenRectangle("texture");
 		}
-		app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
 
 		//----------------------------------------------------------------------------------------------
 		// output FBO1 -> screen
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
+		app.useFrameBuffer(null);
 		app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
 
-		app.gl.activeTexture(app.gl.TEXTURE0);
-		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
+		app.useTextureFromFrameBuffer('First');
 
+		// Draw stuff
 		if ((false) && (app.shaders["CRT"] !== undefined)) {
 			app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
 			app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
@@ -154,16 +153,10 @@ var displayFunc = function(elapsed) {
 			app.fullscreenRectangle("texture");
 		}
 
-		// Draw stuff
-		app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
-
 		// Swap FBO1 <-> FBO2 references cause we have the blurred image on FBO2
-		var tempTexture = app.rttTexture1;
-		var tempFramebuffer = app.rttFramebuffer1;
-		app.rttTexture1 = app.rttTexture2;
-		app.rttFramebuffer1 = app.rttFramebuffer2;
-		app.rttTexture2 = tempTexture;
-		app.rttFramebuffer2 = tempFramebuffer;
+		var tempFramebuffer = app.frameBuffers['First'];
+		app.frameBuffers['First'] = app.frameBuffers['Second'];
+		app.frameBuffers['Second'] = tempFramebuffer;
 	}
 
 };

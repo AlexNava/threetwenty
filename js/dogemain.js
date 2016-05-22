@@ -13,6 +13,8 @@ var startFunc = function () {
 
 	initTextures();
 	initShaders();
+	app.createFrameBuffer('stoca');
+	app.createFrameBuffer('stami');
 };
 
 initTextures = function() {
@@ -38,7 +40,8 @@ var displayFunc = function (elapsed) {
 	animateFun(elapsed);
 
 	// draw scene on 1st FBO
-	app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
+	//app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
+	app.useFrameBuffer('stoca');
 	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
 	app.gl.enable(app.gl.DEPTH_TEST);
 
@@ -53,8 +56,9 @@ var displayFunc = function (elapsed) {
 	if (app.shaders["blur"] !== undefined) {
 		app.gl.useProgram(app.shaders["blur"]);
 
-		app.gl.activeTexture(app.gl.TEXTURE0);
-		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		//app.gl.activeTexture(app.gl.TEXTURE0);
+		//app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		app.useTextureFromFrameBuffer('stami');
 		app.gl.uniform1i(app.shaders["blur"].uSampler, 0);
 		app.gl.uniform1f(app.shaders["blur"].uTextureW, app.xResolution);
 		app.gl.uniform1f(app.shaders["blur"].uTextureH, app.yResolution);
@@ -99,16 +103,17 @@ var displayFunc = function (elapsed) {
 
 	//----------------------------------------------------------------------------------------------
 	// Intermediate step: draw textured quad from first FBO to second FBO
-	app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
-	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
+	//app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer2);
+	app.useFrameBuffer('stami');
 	app.gl.disable(app.gl.DEPTH_TEST);
 
 	identityMv = mat4.create();
 
 	app.gl.useProgram(app.shaders["texture"]);
 
-	app.gl.activeTexture(app.gl.TEXTURE0);
-	app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
+	//app.gl.activeTexture(app.gl.TEXTURE0);
+	//app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
+	app.useTextureFromFrameBuffer('stoca');
 	app.gl.uniform1i(app.shaders["texture"].uSampler, 0);
 	app.gl.uniform1f(app.shaders["texture"].uTextureW, app.xResolution);
 	app.gl.uniform1f(app.shaders["texture"].uTextureH, app.yResolution);
@@ -133,8 +138,9 @@ var displayFunc = function (elapsed) {
 		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!
 		//app.gl.useProgram(app.shaders["texture"]);
 
-		app.gl.activeTexture(app.gl.TEXTURE0);
-		app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		//app.gl.activeTexture(app.gl.TEXTURE0);
+		//app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture2);
+		app.useTextureFromFrameBuffer('stami');
 
 		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
 		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);

@@ -97,7 +97,6 @@ var WebGlMgr = function () {
 		this.screenVertexBuffer = null;
 		this.screenCoordBuffer = null;
 
-		this.initOffscreenBuffers();
 		this.initVertexBuffers();
 		this.initBuiltinShaders();
 	};
@@ -112,65 +111,6 @@ var WebGlMgr = function () {
 		{
 			alert("Could not initialise WebGL");
 		}
-	};
-
-	this.initOffscreenBuffers = function() {
-		// Two separate FBOs
-		this.rttFramebuffer1 = this.gl.createFramebuffer();
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer1);
-		this.rttFramebuffer1.width = this.xResolution;
-		this.rttFramebuffer1.height = this.yResolution;
-
-		// Two textures for color
-		// Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
-		this.rttTexture1 = this.gl.createTexture();
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture1);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer1.width, this.rttFramebuffer1.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-
-		// Two renderbuffers (for depth?)
-		this.rttRenderbuffer1 = this.gl.createRenderbuffer();
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer1);
-		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer1.width, this.rttFramebuffer1.height);
-
-		// Bind to 1st FBO
-		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture1, 0);
-		this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer1);
-
-
-		// 2nd FBO
-		this.rttFramebuffer2 = this.gl.createFramebuffer();
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.rttFramebuffer2);
-		this.rttFramebuffer2.width = this.xResolution;
-		this.rttFramebuffer2.height = this.yResolution;
-
-		// 2nd texture
-		this.rttTexture2 = this.gl.createTexture();
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.rttTexture2);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.rttFramebuffer2.width, this.rttFramebuffer2.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
-
-		// 2nd renderbuffer
-		this.rttRenderbuffer2 = this.gl.createRenderbuffer();
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, this.rttRenderbuffer2);
-		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, this.rttFramebuffer2.width, this.rttFramebuffer2.height);
-
-		// Bind to 2nd FBO
-		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, this.rttTexture2, 0);
-		this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, this.rttRenderbuffer2);
-
-		// Switch to default texture/renderbuff/framebuff
-		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
-		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 	};
 
 	this.initVertexBuffers = function() {
@@ -387,6 +327,61 @@ var WebGlMgr = function () {
 		for (var i = 0; i <uniformsList.length; i++) {
 			this.shaders[shaderName][uniformsList[i]] = this.gl.getUniformLocation(this.shaders[shaderName], uniformsList[i]);
 		}
+	}
+
+	// Framebuffer utils ---------------
+	this.frameBuffers = [];
+	this.createFrameBuffer = function(fbName) {
+		var tempFb = this.gl.createFramebuffer();
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, tempFb);
+		tempFb.width = this.xResolution;
+		tempFb.height = this.yResolution;
+
+		// Texture for color
+		var tempTexture = this.gl.createTexture();
+		
+		this.gl.bindTexture(this.gl.TEXTURE_2D, tempTexture);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+		// Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+
+		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, tempFb.width, tempFb.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
+
+		// Renderbuffers
+		var tempRenderBuf = this.gl.createRenderbuffer();
+		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, tempRenderBuf);
+		// Renderbuffer is only used to store DEPTH
+		this.gl.renderbufferStorage(this.gl.RENDERBUFFER, this.gl.DEPTH_COMPONENT16, tempFb.width, tempFb.height);
+
+		// Bind to 1st FBO
+		this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, tempTexture, 0);
+		this.gl.framebufferRenderbuffer(this.gl.FRAMEBUFFER, this.gl.DEPTH_ATTACHMENT, this.gl.RENDERBUFFER, tempRenderBuf);
+
+		// Switch to default texture/renderbuff/framebuff
+		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+		this.gl.bindRenderbuffer(this.gl.RENDERBUFFER, null);
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+		
+		tempFb.texture = tempTexture;
+		this.frameBuffers[fbName] = tempFb;
+	}
+
+	this.useFrameBuffer = function(fbName) {
+		if (fbName === null)
+		{
+			app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
+		}
+		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
+	}
+
+	this.useTextureFromFrameBuffer = function(fbName, textureUnit) {
+		if (textureUnit == undefined){
+			textureUnit = 0;
+		}
+		this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.frameBuffers[fbName].texture);	
 	}
 
 	// Texture utils -------------------
