@@ -1,6 +1,7 @@
 var startFunc = function () {
 	window.addEventListener("click", app.goFullscreen);
 
+	app.createFrameBuffer('macheoh');
 	initTextures();
 	initShaders();
 };
@@ -21,7 +22,7 @@ var displayFunc = function(elapsed) {
 	animateFun(elapsed);
 
 	// draw scene on 1st FBO
-	app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, app.rttFramebuffer1);
+	app.useFrameBuffer('macheoh');
 	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
 	//app.gl.enable(app.gl.DEPTH_TEST);
 
@@ -50,14 +51,13 @@ var displayFunc = function(elapsed) {
 	                0, 10, "nokia");    
 	//----------------------------------------------------------------------------------------------
 	// draw textured quad from first FBO to screen
-	app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
+	app.useFrameBuffer(null);
 	app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
 
 	app.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
 
-	app.gl.activeTexture(app.gl.TEXTURE0);
-	app.gl.bindTexture(app.gl.TEXTURE_2D, app.rttTexture1);
+	app.useTextureFromFrameBuffer('macheoh');
 
 	if (app.shaders["CRT"] !== undefined) {
 		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
