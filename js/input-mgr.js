@@ -1,4 +1,5 @@
-var InputMgr = function () {
+var InputMgr = function (glMgrObject) {
+	this.glMgr = glMgrObject;
 	this.setup();
 };
 
@@ -38,6 +39,11 @@ InputMgr.prototype.setup = function () {
 				};
 				this.touchPoints[event.changedTouches[i].identifier].currentX = this.touchPoints[event.changedTouches[i].identifier].startX;
 				this.touchPoints[event.changedTouches[i].identifier].currentY = this.touchPoints[event.changedTouches[i].identifier].startY;
+
+				this.touchPoints[event.changedTouches[i].identifier].pixelX =
+					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
+					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 			}
 		}.bind(this),
 		false
@@ -57,6 +63,10 @@ InputMgr.prototype.setup = function () {
 					this.touchPoints[event.changedTouches[i].identifier].currentY = event.changedTouches[i].clientY;
 					this.touchPoints[event.changedTouches[i].identifier].checked = false;
 				}
+				this.touchPoints[event.changedTouches[i].identifier].pixelX =
+					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
+					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 			}
 		}.bind(this),
 		false
