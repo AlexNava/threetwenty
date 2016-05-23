@@ -132,17 +132,6 @@ var displayFunc = function(elapsed) {
 	app.gl.enable(app.gl.BLEND);
 	app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
 
-	//font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
-	//                10, 130, "nokia");
-	//
-	//for (var i = 0; i < input.touchPoints.length; i++) {
-	//	if (input.touchPoints[i].lastX !== undefined) {
-	//		font.drawTextXy("touch " + i + ": " + input.touchPoints[i].lastX + ", " + input.touchPoints[i].lastY,
-	//		                10,
-	//		                140 + i * 9, "nokia");
-	//	}
-	//}
-
 	var firstRow = Math.round(app.viewCenter.y - (120 / app.viewScale)) - 1;
 	var firstCol = Math.round(app.viewCenter.x - (160 / app.viewScale)) - 1;
 	var lastRow = Math.round(app.viewCenter.y + (120 / app.viewScale)) + 1;
@@ -175,7 +164,18 @@ var displayFunc = function(elapsed) {
 			//"nokia");
 		}
 	}
+
+	//font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
+	//                10, 130, "nokia");
 	
+	for (var i = 0; i < input.touchPoints.length; i++) {
+		if ((input.touchPoints[i] !== undefined) && (input.touchPoints[i].pixelX !== undefined)) {
+			font.drawTextXy("touch " + i + ": " + input.touchPoints[i].pixelX + ", " + input.touchPoints[i].pixelY,
+			                10,
+			                140 + i * 9, "nokia");
+		}
+	}
+
 	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
 	                0, 0, "nokia");
 	
@@ -222,8 +222,8 @@ var animateFun = function (elapsed) {
 		if (input.touchPoints[0].checked === false) {
 			app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
 			app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
-			app.viewCenter.xSpeed *= (app.xResolution / app.mainCanvas.width) / app.viewScale;
-			app.viewCenter.ySpeed *= (app.yResolution / app.mainCanvas.height) / app.viewScale;
+			app.viewCenter.xSpeed *= (app.xResolution / document.body.clientWidth) / app.viewScale;
+			app.viewCenter.ySpeed *= (app.yResolution / document.body.clientHeight) / app.viewScale;
 		}
 		else {
 			app.viewCenter.xSpeed = 0;
