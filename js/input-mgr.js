@@ -6,6 +6,8 @@ var InputMgr = function (glMgrObject) {
 InputMgr.prototype.setup = function () {
 	this.keyPressed = new Array(0);
 	this.touchPoints = new Array(0);
+	this.mouse = null;
+	this.pointer = null; // mouse or touch[0]
 	this.gestureLeft = false;
 	this.gestureRight = false;
 	this.gestureUp = false;
@@ -78,6 +80,14 @@ InputMgr.prototype.setup = function () {
 			for (var i = 0; i < event.changedTouches.length; i++){
 				this.touchPoints[event.changedTouches[i].identifier] = undefined;
 			}
+		}.bind(this),
+		false
+	);
+
+	// http://www.html5rocks.com/en/mobile/touchandmouse/
+	window.addEventListener("mousedown",
+		function (event) {
+		// ...
 		}.bind(this),
 		false
 	);

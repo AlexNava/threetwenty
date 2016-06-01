@@ -200,7 +200,7 @@ app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
 window.addEventListener("resize", app.checkResize.bind(app));
 
-var input = new InputMgr();
+var input = new InputMgr(app);
 
 var font = new FontMgr(app);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
