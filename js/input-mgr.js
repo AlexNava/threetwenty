@@ -1,4 +1,11 @@
 var InputMgr = function (glMgrObject) {
+	this.pointerStatus = {
+		NONE:          0,
+		START_CLICK:   1, // as soon as mousedown or touchstart
+		CLICK_TIMEOUT: 2, // to prevent dragging afterwards
+		DRAG:          3  // when dragging, prevents click or longclick afterwards
+	};
+
 	this.glMgr = glMgrObject;
 	this.setup();
 };
@@ -7,11 +14,23 @@ InputMgr.prototype.setup = function () {
 	this.keyPressed = new Array(0);
 	this.touchPoints = new Array(0);
 	this.mouse = null;
-	this.pointer = null; // mouse or touch[0]
+	// mouse or first touch
+	this.pointer = {
+		status = this.pointerStatus.NONE;
+	}
 	this.gestureLeft = false;
 	this.gestureRight = false;
 	this.gestureUp = false;
 	this.gestureDown = false;
+
+	this.fingersOnScreen = function () {
+		var fingersCnt = 0;
+		for (var i = 0; i < touchPoints.length; ++i) {
+			if (touchPoints[i] != undefined)
+				++fingersCnt;
+		}
+		return fingersCnt;
+	};
 
 	window.addEventListener("keydown",
 		function (event) {
@@ -87,10 +106,34 @@ InputMgr.prototype.setup = function () {
 	// http://www.html5rocks.com/en/mobile/touchandmouse/
 	window.addEventListener("mousedown",
 		function (event) {
+			// ...
+			if (this.pointer.status === this.pointerStatus.NONE)
+			{
+				// update pointer
+				this.pointer.status = this.pointerStatus.START_CLICK;
+				// set timeout for longpress
+			}
+		}.bind(this),
+		false
+	);
+
+	window.addEventListener("mousemove",
+		function (event) {
+		// clear timeout
 		// ...
 		}.bind(this),
 		false
 	);
+
+	window.addEventListener("mouseup",
+		function (event) {
+		// clear timeout as well
+		// ...
+		}.bind(this),
+		false
+	);
+
+
 
 	window.addEventListener("focusout",
 		function (event) {
