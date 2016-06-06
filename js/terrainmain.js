@@ -176,6 +176,8 @@ var displayFunc = function(elapsed) {
 		}
 	}
 
+	font.drawTextXy(input.pointer.x + "," + input.pointer.y,
+	                0, 10, "nokia");
 	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
 	                0, 0, "nokia");
 	

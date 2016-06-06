@@ -1,9 +1,9 @@
 var InputMgr = function (glMgrObject) {
 	this.pointerStatus = {
 		NONE:          0,
-		START_CLICK:   1, // as soon as mousedown or touchstart
-		CLICK_TIMEOUT: 2, // to prevent dragging afterwards
-		DRAG:          3  // when dragging, prevents click or longclick afterwards
+		START_PRESS:   1, // as soon as mousedown or touchstart
+		PRESS_TIMEOUT: 2, // to prevent dragging afterwards
+		DRAG:          3  // when dragging, prevents press or longpress afterwards
 	};
 
 	this.glMgr = glMgrObject;
@@ -16,8 +16,11 @@ InputMgr.prototype.setup = function () {
 	this.mouse = null;
 	// mouse or first touch
 	this.pointer = {
-		status = this.pointerStatus.NONE;
-	}
+		status: this.pointerStatus.NONE,
+		x: 0,
+		y: 0
+	};
+
 	this.gestureLeft = false;
 	this.gestureRight = false;
 	this.gestureUp = false;
@@ -110,7 +113,7 @@ InputMgr.prototype.setup = function () {
 			if (this.pointer.status === this.pointerStatus.NONE)
 			{
 				// update pointer
-				this.pointer.status = this.pointerStatus.START_CLICK;
+				this.pointer.status = this.pointerStatus.START_PRESS;
 				// set timeout for longpress
 			}
 		}.bind(this),
@@ -119,8 +122,24 @@ InputMgr.prototype.setup = function () {
 
 	window.addEventListener("mousemove",
 		function (event) {
-		// clear timeout
-		// ...
+			// clear longpress timeout
+			switch (this.pointer.status) {
+			case this.pointerStatus.NONE:
+				// just move pointer
+				this.pointer.x = event.offsetX;
+				this.pointer.y = event.offsetY;
+				break;
+			case this.pointerStatus.START_PRESS:
+			case this.pointerStatus.DRAG:
+				// drag
+				this.pointer.status = this.pointerStatus.DRAG;
+				this.pointer.x = event.offsetX;
+				this.pointer.y = event.offsetY;
+				break;
+			case this.pointerStatus.PRESS_TIMEOUT:
+				// ignore
+				break;
+			}
 		}.bind(this),
 		false
 	);
@@ -129,6 +148,20 @@ InputMgr.prototype.setup = function () {
 		function (event) {
 		// clear timeout as well
 		// ...
+			switch (this.pointer.status) {
+			case this.pointerStatus.NONE:
+				// Should never happen
+				break;
+			case this.pointerStatus.START_PRESS:
+				// fire press/click action
+			case this.pointerStatus.DRAG:
+				// end drag
+				break;
+			case this.pointerStatus.PRESS_TIMEOUT:
+				// ignore
+				break;
+			}
+			this.pointer.status = this.pointerStatus.NONE;
 		}.bind(this),
 		false
 	);
