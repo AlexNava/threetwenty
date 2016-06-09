@@ -51,6 +51,8 @@ InputMgr.prototype.setup = function () {
 		true
 	);
 
+	// Unfortunately, touch events don't have offsetx/y properties relative to a target.
+	// Fortunately they will be only used on mobile with a fullscreen canvas
 	window.addEventListener("touchstart",
 		function (event) {
 			event.preventDefault();
