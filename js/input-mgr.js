@@ -14,12 +14,14 @@ InputMgr.prototype.setup = function () {
 	this.keyPressed = new Array(0);
 	this.touchPoints = new Array(0);
 	this.mouse = null;
+	this.timeoutID = null;
 	// mouse or first touch
 	this.pointer = {
 		status: this.pointerStatus.NONE,
 		x: 0,
 		y: 0
 	};
+	this.previousPointer = this.pointer;
 
 	this.gestureLeft = false;
 	this.gestureRight = false;
@@ -116,7 +118,8 @@ InputMgr.prototype.setup = function () {
 			{
 				// update pointer
 				this.pointer.status = this.pointerStatus.START_PRESS;
-				// set timeout for longpress
+				// set timeout for longpress (i don't want to care right now)
+				//this.timeoutID = window.setTimeout();
 			}
 		}.bind(this),
 		false
@@ -142,6 +145,9 @@ InputMgr.prototype.setup = function () {
 				// ignore
 				break;
 			}
+			this.pointer.pixelX = Math.round(app.xResolution * this.pointer.x / document.body.clientWidth);
+			this.pointer.pixelY = Math.round(app.yResolution - app.yResolution * this.pointer.y / document.body.clientHeight);
+		
 		}.bind(this),
 		false
 	);
@@ -204,4 +210,29 @@ InputMgr.prototype.pollTouchGestures = function() {
 			this.touchPoints[0].checked = true;
 		}
 	}
+};
+
+InputMgr.prototype.checkUI = function(uiMgr) {
+	// obtain UI element under cursor
+	var target = null;//uiMgr.findElement(this.pointer.x, this.pointer.y);
+	
+	// Here i'll check mouse state compared with its previous state and will call the appropriate function on the target
+
+	if (this.pointer.status === this.pointerStatus.NONE){
+		if (target.hover !== undefined) target.hover();
+	}
+	else {
+		if (target.pressed !== undefined) target.pressed();
+	}
+	if ((this.pointer.status === this.pointerStatus.START_PRESS) && (this.pointer.status !== this.pointerStatus.START_PRESS))
+		if (target.startPress !== undefined) target.startPress();
+	if ((this.pointer.status === this.pointerStatus.NONE) && (this.pointer.status !== this.pointerStatus.START_PRESS))
+		if (target.shortPress !== undefined) target.shortPress();
+	if ((this.pointer.status === this.pointerStatus.DRAG) && ((this.pointer.x !== this.previousPointer.x) || (this.pointer.y - this.previousPointer.y)))
+		if (target.drag !== undefined) target.drag(this.pointer.x - this.previousPointer.x, this.pointer.y - this.previousPointer.y);
+	if ((this.pointer.status === this.pointerStatus.NONE) && (this.pointer.status !== this.pointerStatus.DRAG))
+		if (target.endDrag !== undefined) target.endDrag();
+	}
+
+	this.previousPointer = this.pointer;
 };

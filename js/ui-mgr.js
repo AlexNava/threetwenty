@@ -4,6 +4,16 @@ var UiMgr = function(glMgrObject, inputMgrObject, fontMgrObject) {
 	this.fontMgr = fontMgrObject;
 }
 
+// controls with these methods:
+// hover
+// pressed
+// startPress
+// shortPress
+// longPress maybe in an unspecified future
+// drag
+// endDrag
+// called by input-mgr
+
 // pages with controls
 // page methods: onEntry (construction, elements initialization); tick (animation)
 // provide methods to create controls
