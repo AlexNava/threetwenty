@@ -1,3 +1,4 @@
+"use strict";
 var WebGlMgr = function () {
 
 	this.mainCanvas = null;
@@ -24,7 +25,6 @@ var WebGlMgr = function () {
 		}
 		this.timer.lastTime = timeNow;
 
-		this.lastFunction = -1;
 		this.displayFunc(elapsed);
 
 		requestAnimationFrame(this.tick.bind(this));
@@ -74,7 +74,7 @@ var WebGlMgr = function () {
 		try {
 			this.initGL(this.mainCanvas);
 		} catch (exception) {
-			alert('Error while booting WebGL: ' + exception);
+			alert('Error while initializing WebGL: ' + exception);
 		}
 
 		// Builtin matrices ----------------
@@ -82,16 +82,8 @@ var WebGlMgr = function () {
 		this.perspectiveProjMatrix = mat4.create();
 		this.orthoProjMatrix = mat4.create();
 		mat4.ortho(this.orthoProjMatrix, 0, this.xResolution, 0, this.yResolution, -1, 1);
-		
-		// Builtin framebuffer objects -----
-		this.rttFramebuffer1 = null;
-		this.rttTexture1 = null;
-		this.rttRenderbuffer1 = null;
 
-		this.rttFramebuffer2 = null;
-		this.rttTexture2 = null;
-		this.rttRenderbuffer2 = null;
-
+		// Builtin vertex buffers ----------
 		this.triangleVertexPosBuffer = null;
 		this.triangleVertexColBuffer = null;
 		this.screenVertexBuffer = null;
@@ -339,6 +331,8 @@ var WebGlMgr = function () {
 
 		// Texture for color
 		var tempTexture = this.gl.createTexture();
+		tempTexture.width = tempFb.width;
+		tempTexture.height = tempFb.height;
 		
 		this.gl.bindTexture(this.gl.TEXTURE_2D, tempTexture);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
@@ -381,7 +375,10 @@ var WebGlMgr = function () {
 			textureUnit = 0;
 		}
 		this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.frameBuffers[fbName].texture);	
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.frameBuffers[fbName].texture);
+		
+		if (textureUnit === 0)
+			this.textureInUse = this.frameBuffers[fbName].texture;
 	}
 
 	// Texture utils -------------------
@@ -407,17 +404,24 @@ var WebGlMgr = function () {
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE); //
 
 		this.gl.generateMipmap(this.gl.TEXTURE_2D); // works even with npot textures
-
+		texture.width = image.width;
+		texture.height = image.height;
 		this.textures[textureName] = texture;
 		this.gl.bindTexture(this.gl.TEXTURE_2D, null);
 	};
+
+	this.textureInUse = undefined;
 
 	this.useTexture = function(textureName, textureUnit) {
 		if (textureUnit == undefined){
 			textureUnit = 0;
 		}
 		this.gl.activeTexture(this.gl.TEXTURE0 + textureUnit);
-		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureName]);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures[textureName.toString()]);
+
+		if (textureUnit === 0) {
+			this.textureInUse = this.textures[textureName.toString()];
+		}
 	};
 
 	// Global timer --------------------
@@ -427,13 +431,14 @@ var WebGlMgr = function () {
 
 	// Miscellaneous 2D drawing --------
 	this.drawFunctions = {
-		QUAD2D:   0,
-		RECT2D:   1,
-		INVALID: -1
+		QUAD2D:           0,
+		RECT2D:           1,
+		FULLSCREEN_RECT:  2,
+		INVALID:         -1
 	};
 		
 	this.lastFunction = this.drawFunctions.INVALID;
-	
+
 	this.quad2DColor = function(r, g, b, a) {
 		var shad = this.shaders["quad2d"];
 		
@@ -471,19 +476,18 @@ var WebGlMgr = function () {
 	this.rect2DColor = function(r, g, b, a) {
 		var shad = this.shaders["rect2d"];
 		
-		this.gl.useProgram(shad);    
+		this.gl.useProgram(shad);
 
 		this.gl.uniform4fv(shad.uBaseColor, [r, g, b, a]);
 	};
 
 	this.texturedRect2D = function(bottomLeftX, bottomLeftY, width, height,
-								   bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight,
-								   textureWidth, textureHeight) {
+								   bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight) {
 		var shad = this.shaders["rect2d"];
 		
 		if (this.lastFunction !== this.drawFunctions.RECT2D)
 		{
-			this.gl.useProgram(shad);    
+			this.gl.useProgram(shad);
 
 			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectVertexPosBuffer);
 			this.gl.vertexAttribPointer(shad.aVertexPosition, this.rectVertexPosBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
@@ -499,7 +503,9 @@ var WebGlMgr = function () {
 		this.gl.uniform2fv(shad.uSize, [width, height]);
 		this.gl.uniform2fv(shad.uTextureCornerPosition, [bottomLeftTextureX, bottomLeftTextureY]);
 		this.gl.uniform2fv(shad.uTextureSelectionSize, [textureSelectionWidth, textureSelectionHeight]);
-		this.gl.uniform2fv(shad.uTextureSize, [textureWidth, textureHeight]);
+		
+		if (this.textureInUse !== undefined)
+			this.gl.uniform2fv(shad.uTextureSize, [this.textureInUse.width, this.textureInUse.height]);
 	
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.rectVertexPosBuffer.numItems);
 
@@ -512,6 +518,8 @@ var WebGlMgr = function () {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, app.screenCoordBuffer);
 		this.gl.vertexAttribPointer(this.shaders[shaderId].aTextureCoord, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
+
+		this.lastFunction = this.drawFunctions.FULLSCREEN_RECT;
 	};
 
 };

@@ -22,7 +22,15 @@ InputMgr.prototype.setup = function () {
 		y: 0
 	};
 	this.previousPointer = this.pointer;
-
+	this.pointerGraphicalInfo = {
+		texture : null,
+		bottom :  0,
+		left :    0,
+		top :     0,
+		right :   0,
+		originX : 0,
+		originY : 0
+	}
 	this.gestureLeft = false;
 	this.gestureRight = false;
 	this.gestureUp = false;
@@ -212,13 +220,26 @@ InputMgr.prototype.pollTouchGestures = function() {
 	}
 };
 
+InputMgr.prototype.setPointer = function(texture, bottom, left, top, right, originX, originY) {
+	this.pointerGraphicalInfo = {
+		texture : texture,
+		bottom :  bottom,
+		left :    left,
+		top :     top,
+		right :   right,
+		originX : originX,
+		originY : originY}
+
+InputMgr.prototype.drawPointer = function() {
+}
+
 InputMgr.prototype.checkUI = function(uiMgr) {
 	// obtain UI element under cursor
 	var target = null;//uiMgr.findElement(this.pointer.x, this.pointer.y);
 	
 	// Here i'll check mouse state compared with its previous state and will call the appropriate function on the target
 
-	if (this.pointer.status === this.pointerStatus.NONE){
+	if (this.pointer.status === this.pointerStatus.NONE) {
 		if (target.hover !== undefined) target.hover();
 	}
 	else {

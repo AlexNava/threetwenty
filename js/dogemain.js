@@ -87,8 +87,7 @@ var displayFunc = function (elapsed) {
 
 	app.rect2DColor(1.0, 1.0, 1.0, 1.0);
 	app.texturedRect2D(10, 110, 73, 14,
-	                   55, 210, 73, 14,
-	                   512, 512);
+	                   55, 210, 73, 14);
 
 	font.setAlignment("center");
 	font.setScale(1.0);
@@ -141,12 +140,7 @@ var displayFunc = function (elapsed) {
 		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 
 		// Draw stuff
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-
-		app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+		app.fullscreenRectangle("CRT");
 	}
 };
 

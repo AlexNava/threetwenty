@@ -158,7 +158,7 @@ var displayFunc = function(elapsed) {
 			                          64);
 
 			app.texturedRect2D(x, y, app.viewScale, app.viewScale,
-			                   texCoord.x, texCoord.y, 16, 16, 64, 64);
+			                   texCoord.x, texCoord.y, 16, 16);
 			//font.drawTextXy(row + "," + col,
 			//x, y,
 			//"nokia");
@@ -208,17 +208,11 @@ var displayFunc = function(elapsed) {
 
 	// Draw stuff
 	if (app.shaders["CRT"] !== undefined) {
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-	} else {
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-		app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-		app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+		app.fullscreenRectangle("CRT");
 	}
-	app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+	else {
+		app.fullscreenRectangle("texture");
+	}
 };
 
 var animateFun = function (elapsed) {

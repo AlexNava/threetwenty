@@ -124,8 +124,7 @@ FontMgr.prototype.drawTextXy = function (text, x, y, fontAlias) {
 			this.glMgr.texturedRect2D(currentX, y,
 			                          this.currentScale * currentChar.width, this.currentScale * currentChar.height,
 			                          currentChar.x, currentChar.y,
-			                          currentChar.width, currentChar.height,
-			                          currentFont.scaleW, currentFont.scaleH);
+			                          currentChar.width, currentChar.height);
 
 			currentX += this.currentScale * currentChar.xadvance;
 		}
