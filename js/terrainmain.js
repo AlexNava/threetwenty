@@ -29,6 +29,8 @@ var startFunc = function () {
 
 initTextures = function() {
 	app.loadTexture("terrainTiles", "images/terraintiles64.png");
+	app.loadTexture("mouse", "images/pointer.png");
+	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
 
 initShaders = function() {
@@ -184,6 +186,8 @@ var displayFunc = function(elapsed) {
 	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
 	                0, 0, "nokia");
 	
+	input.drawPointer();
+	
 	//----------------------------------------------------------------------------------------------
 	// draw textured quad from first FBO to screen
 	app.useFrameBuffer(null);
@@ -251,7 +255,7 @@ app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
 window.addEventListener("resize", app.checkResize.bind(app));
 
-var input = new InputMgr();
+var input = new InputMgr(app);
 
 var font = new FontMgr(app);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");

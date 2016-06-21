@@ -23,13 +23,13 @@ InputMgr.prototype.setup = function () {
 	};
 	this.previousPointer = this.pointer;
 	this.pointerGraphicalInfo = {
-		texture : null,
-		bottom :  0,
-		left :    0,
-		top :     0,
-		right :   0,
-		originX : 0,
-		originY : 0
+		textureName : '',
+		left :        0,
+		bottom :      0,
+		width :       0,
+		height :      0,
+		originX :     0,
+		originY :     0
 	}
 	this.gestureLeft = false;
 	this.gestureRight = false;
@@ -220,18 +220,31 @@ InputMgr.prototype.pollTouchGestures = function() {
 	}
 };
 
-InputMgr.prototype.setPointer = function(texture, bottom, left, top, right, originX, originY) {
+InputMgr.prototype.setPointer = function(textureName, left, bottom, width, height, originX, originY) {
 	this.pointerGraphicalInfo = {
-		texture : texture,
-		bottom :  bottom,
-		left :    left,
-		top :     top,
-		right :   right,
-		originX : originX,
-		originY : originY}
+		textureName : textureName,
+		left :        left,
+		bottom :      bottom,
+		width :       width,
+		height :      height,
+		originX :     originX,
+		originY :     originY
+	}
+};
 
 InputMgr.prototype.drawPointer = function() {
-}
+	this.glMgr.useTexture(this.pointerGraphicalInfo.textureName);
+	this.glMgr.texturedRect2D(
+		this.pointer.pixelX - this.pointerGraphicalInfo.originX,
+		this.pointer.pixelY - this.pointerGraphicalInfo.originY,
+		this.pointerGraphicalInfo.width,
+		this.pointerGraphicalInfo.height,
+		this.pointerGraphicalInfo.left,
+		this.pointerGraphicalInfo.bottom,
+		this.pointerGraphicalInfo.width,
+		this.pointerGraphicalInfo.height
+	);
+};
 
 InputMgr.prototype.checkUI = function(uiMgr) {
 	// obtain UI element under cursor
@@ -253,7 +266,6 @@ InputMgr.prototype.checkUI = function(uiMgr) {
 		if (target.drag !== undefined) target.drag(this.pointer.x - this.previousPointer.x, this.pointer.y - this.previousPointer.y);
 	if ((this.pointer.status === this.pointerStatus.NONE) && (this.pointer.status !== this.pointerStatus.DRAG))
 		if (target.endDrag !== undefined) target.endDrag();
-	}
 
 	this.previousPointer = this.pointer;
 };
