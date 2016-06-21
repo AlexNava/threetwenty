@@ -29,6 +29,8 @@ var startFunc = function () {
 
 initTextures = function() {
 	app.loadTexture("terrainTiles", "images/terraintiles64.png");
+	app.loadTexture("mouse", "images/pointer.png");
+	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
 
 initShaders = function() {
@@ -158,7 +160,7 @@ var displayFunc = function(elapsed) {
 			                          64);
 
 			app.texturedRect2D(x, y, app.viewScale, app.viewScale,
-			                   texCoord.x, texCoord.y, 16, 16, 64, 64);
+			                   texCoord.x, texCoord.y, 16, 16);
 			//font.drawTextXy(row + "," + col,
 			//x, y,
 			//"nokia");
@@ -176,8 +178,15 @@ var displayFunc = function(elapsed) {
 		}
 	}
 
+	font.drawTextXy(input.pointer.pixelX + "," + input.pointer.pixelY,
+	                0, 10, "nokia");
+	font.drawTextXy("Status: " + input.pointer.status,
+	                0, 20, "nokia");
+	
 	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
 	                0, 0, "nokia");
+	
+	input.drawPointer();
 	
 	//----------------------------------------------------------------------------------------------
 	// draw textured quad from first FBO to screen
@@ -203,17 +212,11 @@ var displayFunc = function(elapsed) {
 
 	// Draw stuff
 	if (app.shaders["CRT"] !== undefined) {
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-		app.gl.vertexAttribPointer(app.shaders["CRT"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-	} else {
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenVertexBuffer);
-		app.gl.vertexAttribPointer(app.shaders["texture"].aVertexPosition, app.screenVertexBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
-		app.gl.bindBuffer(app.gl.ARRAY_BUFFER, app.screenCoordBuffer);
-		app.gl.vertexAttribPointer(app.shaders["texture"].aTextureCoord, app.screenCoordBuffer.itemSize, app.gl.FLOAT, false, 0, 0);
+		app.fullscreenRectangle("CRT");
 	}
-	app.gl.drawArrays(app.gl.TRIANGLE_STRIP, 0, app.screenVertexBuffer.numItems);
+	else {
+		app.fullscreenRectangle("texture");
+	}
 };
 
 var animateFun = function (elapsed) {
@@ -252,7 +255,7 @@ app.setStartFunc(startFunc);
 app.setDisplayFunc(displayFunc);
 window.addEventListener("resize", app.checkResize.bind(app));
 
-var input = new InputMgr();
+var input = new InputMgr(app);
 
 var font = new FontMgr(app);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
