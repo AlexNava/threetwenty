@@ -20,6 +20,8 @@ var startFunc = function () {
 initTextures = function() {
 	app.loadTexture("snoop", "images/SnoopDogeTransp.png");
 	app.loadTexture("code", "images/code64.png");
+	app.loadTexture("bezel", "shaders/crt_images/bezel.png");
+	app.loadTexture("glow", "shaders/crt_images/glow.png");
 };
 
 initShaders = function() {
@@ -32,7 +34,7 @@ initShaders = function() {
 	// CRT
 	app.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
 		app.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
-		app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette"]);
+		app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
 	});
 };
 
@@ -132,10 +134,16 @@ var displayFunc = function (elapsed) {
 		//app.gl.useProgram(app.shaders["texture"]);
 
 		app.useTextureFromFrameBuffer('stami');
+		app.useTexture('bezel', 1);
+		app.useTexture('glow', 2);
 
 		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
 		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);
 		app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
+		
+		app.gl.uniform1i(app.shaders["CRT"].uSampler, 0);
+		app.gl.uniform1i(app.shaders["CRT"].uBezelSampler, 1);
+		app.gl.uniform1i(app.shaders["CRT"].uGlowSampler, 2);
 
 		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 
