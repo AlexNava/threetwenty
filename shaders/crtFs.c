@@ -57,10 +57,18 @@ void main()
 	if (bezelColor.a > 0.0)
 	{
 		// Image glow on bezel
-		vec4 glowColor = texture2D(uGlowSampler, vTextureCoord);
-		glowColor.rgb *= texture2D(uSampler, vTextureCoord).rgb;
+		float shift = 1.0 / 256.0;
+		vec4 glowLight = texture2D(uGlowSampler, vTextureCoord);
+		vec4 glowColor = texture2D(uSampler, vTextureCoord);
+		glowColor += texture2D(uSampler, vec2(vTextureCoord.s + 2.0 * shift, vTextureCoord.t + shift));
+		glowColor += texture2D(uSampler, vec2(vTextureCoord.s - shift, vTextureCoord.t + 2.0 * shift));
+		glowColor += texture2D(uSampler, vec2(vTextureCoord.s - 2.0 * shift, vTextureCoord.t - shift));
+		glowColor += texture2D(uSampler, vec2(vTextureCoord.s + shift, vTextureCoord.t - 2.0 * shift));
+		glowColor *= 0.2;
 
-		bezelColor.rgb += 0.2 * glowColor.rgb;
+		glowColor.rgb *= glowLight.rgb;
+
+		bezelColor.rgb += 0.3 * glowColor.rgb;
 
 		// Result
 		gl_FragColor = vec4((bezelColor.rgb * bezelColor.a + fragmentColor.rgb * (1.0 - bezelColor.a)), 1.0);
