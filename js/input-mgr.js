@@ -122,6 +122,8 @@ InputMgr.prototype.setup = function () {
 	window.addEventListener("mousedown",
 		function (event) {
 			// ...
+			if (event.button != 0) // main button
+				return;
 			if (this.pointer.status === this.pointerStatus.NONE)
 			{
 				// update pointer
