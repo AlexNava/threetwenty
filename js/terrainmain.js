@@ -30,6 +30,10 @@ var startFunc = function () {
 initTextures = function() {
 	app.loadTexture("terrainTiles", "images/terraintiles64.png");
 	app.loadTexture("mouse", "images/pointer.png");
+	app.loadTexture("bezel", "shaders/crt_images/bezel.png");
+	app.loadTexture("glow", "shaders/crt_images/glow.png");
+	app.loadTexture("phosphor", "shaders/crt_images/tv-coarse-1536.png");
+
 	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
 
@@ -37,7 +41,7 @@ initShaders = function() {
 	// CRT
 	app.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
 		app.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
-		app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette"]);
+		app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
 	});
 };
 
@@ -197,12 +201,24 @@ var displayFunc = function(elapsed) {
 	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
 
 	app.useTextureFromFrameBuffer('puppa');
+	app.useTexture('bezel', 1);
+	app.useTexture('glow', 2);
+	//app.useTexture('phosphor', 3);
+	//app.gl.texParameteri(app.gl.TEXTURE_2D, app.gl.TEXTURE_MAG_FILTER, app.gl.LINEAR);
+	//app.gl.texParameteri(app.gl.TEXTURE_2D, app.gl.TEXTURE_MIN_FILTER, app.gl.LINEAR);
+
 
 	if (app.shaders["CRT"] !== undefined) {
 		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
 		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);
+		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.1);
 		app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
+
+		app.gl.uniform1i(app.shaders["CRT"].uSampler, 0);
+		app.gl.uniform1i(app.shaders["CRT"].uBezelSampler, 1);
+		app.gl.uniform1i(app.shaders["CRT"].uGlowSampler, 2);
+		app.gl.uniform1i(app.shaders["CRT"].uPhosphorSampler, 3);
+
 		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 	}
 	else {
