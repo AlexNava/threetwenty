@@ -13,9 +13,10 @@ var InputMgr = function (glMgrObject) {
 InputMgr.prototype.setup = function () {
 	this.keyPressed = new Array(0);
 	this.touchPoints = new Array(0);
-	this.mouse = null;
 	this.timeoutID = null;
 	// mouse or first touch
+	this.touchAsPointer = true;
+	this.pointerTouch = -1;
 	this.pointer = {
 		status: this.pointerStatus.NONE,
 		x: 0,
@@ -80,6 +81,17 @@ InputMgr.prototype.setup = function () {
 					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
 				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
 					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+				
+				if (this.touchAsPointer === true)
+				{
+					if (this.pointerTouch === -1)
+					{
+						this.pointerTouch = event.changedTouches[i].identifier;
+						this.pointer.status = this.pointerStatus.START_PRESS;
+						this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
+						this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
+					}
+				}
 			}
 		}.bind(this),
 		false
@@ -103,6 +115,16 @@ InputMgr.prototype.setup = function () {
 					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
 				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
 					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+
+				if (this.touchAsPointer === true)
+				{
+					if (this.pointerTouch === event.changedTouches[i].identifier)
+					{
+						this.pointer.status = this.pointerStatus.DRAG;
+						this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
+						this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
+					}
+				}
 			}
 		}.bind(this),
 		false
@@ -113,7 +135,19 @@ InputMgr.prototype.setup = function () {
 			event.preventDefault();
 			for (var i = 0; i < event.changedTouches.length; i++){
 				this.touchPoints[event.changedTouches[i].identifier] = undefined;
+
+				if (this.touchAsPointer === true)
+				{
+					if (this.pointerTouch === event.changedTouches[i].identifier)
+					{
+						this.pointerTouch = -1;
+						this.pointer.status = this.pointerStatus.NONE;
+						//this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
+						//this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
+					}
+				}
 			}
+
 		}.bind(this),
 		false
 	);
