@@ -88,8 +88,8 @@ InputMgr.prototype.setup = function () {
 					{
 						this.pointerTouch = event.changedTouches[i].identifier;
 						this.pointer.status = this.pointerStatus.START_PRESS;
-						this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
-						this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
+						this.pointer.pixelX = this.touchPoints[event.changedTouches[i].identifier].pixelX;
+						this.pointer.pixelY = this.touchPoints[event.changedTouches[i].identifier].pixelY;
 					}
 				}
 			}
@@ -121,8 +121,8 @@ InputMgr.prototype.setup = function () {
 					if (this.pointerTouch === event.changedTouches[i].identifier)
 					{
 						this.pointer.status = this.pointerStatus.DRAG;
-						this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
-						this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
+						this.pointer.pixelX = this.touchPoints[event.changedTouches[i].identifier].pixelX;
+						this.pointer.pixelY = this.touchPoints[event.changedTouches[i].identifier].pixelY;
 					}
 				}
 			}
