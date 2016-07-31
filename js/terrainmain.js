@@ -1,3 +1,14 @@
+var puppa = 0;
+
+var incPuppa = function() {
+	++puppa;
+};
+
+var moveView = function(x, y) {
+	app.viewCenter.xSpeed = - x / app.viewScale;
+	app.viewCenter.ySpeed = - y / app.viewScale;
+};
+
 var startFunc = function () {
 	
 	app.terraingrid = new Array(100);
@@ -22,9 +33,21 @@ var startFunc = function () {
 	app.mvMatrix = mat4.create();
 	app.perspectiveProjMatrix = mat4.create();
 
-	app.createFrameBuffer('puppa');
+	app.createFrameBuffer('Pippa');
 	initTextures();
 	initShaders();
+
+	var puppaCtrl = ui.UiControl;
+	puppaCtrl.type = ui.controlType.AREA;
+	puppaCtrl.x = 0;
+	puppaCtrl.y = 0;
+	puppaCtrl.width = 320;
+	puppaCtrl.height = 240;
+	puppaCtrl.onClick = incPuppa;
+	puppaCtrl.onDrag = moveView;
+	
+	ui.addControl('Puppa', puppaCtrl);
+	
 };
 
 initTextures = function() {
@@ -126,7 +149,7 @@ var displayFunc = function(elapsed) {
 	animateFun(elapsed);
 
 	// draw scene on 1st FBO
-	app.useFrameBuffer('puppa');
+	app.useFrameBuffer('Pippa');
 	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
 	//app.gl.enable(app.gl.DEPTH_TEST);
 
@@ -182,14 +205,18 @@ var displayFunc = function(elapsed) {
 		}
 	}
 
+	
+	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
+	                0, 0, "nokia");
 	font.drawTextXy(input.pointer.pixelX + "," + input.pointer.pixelY,
 	                0, 10, "nokia");
 	font.drawTextXy("Status: " + input.pointer.status,
 	                0, 20, "nokia");
 	
-	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
-	                0, 0, "nokia");
+	font.drawTextXy("puppa = " + puppa,
+	                0, 30, "nokia");
 	
+	ui.checkUI();
 	input.drawPointer();
 	
 	//----------------------------------------------------------------------------------------------
@@ -200,7 +227,7 @@ var displayFunc = function(elapsed) {
 	app.gl.clearColor(0.0, 0.0, 0.0, 1.0);
 	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
 
-	app.useTextureFromFrameBuffer('puppa');
+	app.useTextureFromFrameBuffer('Pippa');
 	app.useTexture('bezel', 1);
 	app.useTexture('glow', 2);
 	//app.useTexture('phosphor', 3);
@@ -237,18 +264,18 @@ var displayFunc = function(elapsed) {
 
 var animateFun = function (elapsed) {
 
-	if (input.touchPoints[0] != undefined) {
-		if (input.touchPoints[0].checked === false) {
-			app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
-			app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
-			app.viewCenter.xSpeed *= (app.xResolution / document.body.clientWidth) / app.viewScale;
-			app.viewCenter.ySpeed *= (app.yResolution / document.body.clientHeight) / app.viewScale;
-		}
-		else {
-			app.viewCenter.xSpeed = 0;
-			app.viewCenter.ySpeed = 0;
-		}
-	}
+//	if (input.touchPoints[0] != undefined) {
+//		if (input.touchPoints[0].checked === false) {
+//			app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
+//			app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
+//			app.viewCenter.xSpeed *= (app.xResolution / document.body.clientWidth) / app.viewScale;
+//			app.viewCenter.ySpeed *= (app.yResolution / document.body.clientHeight) / app.viewScale;
+//		}
+//		else {
+//			app.viewCenter.xSpeed = 0;
+//			app.viewCenter.ySpeed = 0;
+//		}
+//	}
 
 	app.viewCenter.x += app.viewCenter.xSpeed;
 	app.viewCenter.y += app.viewCenter.ySpeed;
@@ -272,8 +299,9 @@ app.setDisplayFunc(displayFunc);
 window.addEventListener("resize", app.checkResize.bind(app));
 
 var input = new InputMgr(app);
-
 var font = new FontMgr(app);
+var ui = new UiMgr(app, input, font);
+
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
 
 app.start();
