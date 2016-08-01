@@ -20,12 +20,21 @@ void main()
 	// Distorsion
 	vec2 distorted = (vTextureCoord + centerCoord * (1.0 + sqDist) * sqDist);
 
-	if ((distorted.s < 0.0)
-		|| (distorted.t < 0.0)
-		|| (distorted.s > 1.0)
-		|| (distorted.t > 1.0))
+	if (distorted.s < 0.0)
 	{
-		//discard;
+		distorted.s = -distorted.s;
+	}
+	if (distorted.t < 0.0)
+	{
+		distorted.t = -distorted.t;
+	}
+	if (distorted.s > 1.0)
+	{
+		distorted.s = 2.0 - distorted.s;
+	}
+	if (distorted.t > 1.0)
+	{
+		distorted.t = 2.0 - distorted.t;
 	}
 
 	// Scanlines
@@ -59,11 +68,11 @@ void main()
 		// Image glow on bezel
 		float shift = 1.0 / 256.0;
 		vec4 glowLight = texture2D(uGlowSampler, vTextureCoord);
-		vec4 glowColor = texture2D(uSampler, vTextureCoord);
-		glowColor += texture2D(uSampler, vec2(vTextureCoord.s + 2.0 * shift, vTextureCoord.t + shift));
-		glowColor += texture2D(uSampler, vec2(vTextureCoord.s - shift, vTextureCoord.t + 2.0 * shift));
-		glowColor += texture2D(uSampler, vec2(vTextureCoord.s - 2.0 * shift, vTextureCoord.t - shift));
-		glowColor += texture2D(uSampler, vec2(vTextureCoord.s + shift, vTextureCoord.t - 2.0 * shift));
+		vec4 glowColor = texture2D(uSampler, distorted);
+		glowColor += texture2D(uSampler, vec2(distorted.s + 2.0 * shift, distorted.t + shift));
+		glowColor += texture2D(uSampler, vec2(distorted.s - shift, distorted.t + 2.0 * shift));
+		glowColor += texture2D(uSampler, vec2(distorted.s - 2.0 * shift, distorted.t - shift));
+		glowColor += texture2D(uSampler, vec2(distorted.s + shift, distorted.t - 2.0 * shift));
 		glowColor *= 0.2;
 
 		glowColor.rgb *= glowLight.rgb;
