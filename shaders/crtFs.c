@@ -76,8 +76,10 @@ void main()
 		glowColor *= 0.2;
 
 		glowColor.rgb *= glowLight.rgb;
+		
+		glowColor.rgb *= (1.0 - uVignette * sqDist);
 
-		bezelColor.rgb += 0.3 * glowColor.rgb;
+		bezelColor.rgb += 0.8 * glowColor.rgb;
 
 		// Result
 		gl_FragColor = vec4((bezelColor.rgb * bezelColor.a + fragmentColor.rgb * (1.0 - bezelColor.a)), 1.0);
