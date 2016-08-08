@@ -212,7 +212,7 @@ var displayFunc = function(elapsed) {
 		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
 		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
 		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);
-		app.gl.uniform1f(app.shaders["CRT"].uVignette, 10.0);
+		app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
 
 		app.gl.uniform1i(app.shaders["CRT"].uSampler, 0);
 		app.gl.uniform1i(app.shaders["CRT"].uBezelSampler, 1);
@@ -222,7 +222,7 @@ var displayFunc = function(elapsed) {
 		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
 	}
 	else {
-		app.gl.useProgram(app.shaders["texture"]);        
+		app.gl.useProgram(app.shaders["texture"]);
 		app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
 	}
 
