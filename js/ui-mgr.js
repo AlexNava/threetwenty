@@ -19,9 +19,11 @@ var UiMgr = function(glMgrObject, inputMgrObject, fontMgrObject) {
 	};
 	
 	this.glMgr = glMgrObject;
-	this.inputMgr = inputMgrObject;
+	//this.inputMgr = inputMgrObject;
 	this.fontMgr = fontMgrObject;
 
+	inputMgrObject.setUi(this);
+	
 	this.controls = [];
 }
 
@@ -69,29 +71,29 @@ UiMgr.prototype.findControlXY = function(x, y) {
 	return null;
 }
 
-UiMgr.prototype.checkUI = function() {
-	// obtain UI element under cursor
-	var target = this.findControlXY(this.inputMgr.pointer.pixelX, this.inputMgr.pointer.pixelY);
-	if (target === null)
-		return;
-
-	var pointerEvent = this.inputMgr.checkPointerEvents();
-	
-	switch(pointerEvent.type) {
-	case this.inputMgr.pointerEvent.NONE:
-	default:
-		return;
-	case this.inputMgr.pointerEvent.CLIC_START:
-		if ((target.onDrag !== undefined) && (target.onDrag !== null))
-			target.onDrag(0, 0);
-		break;
-	case this.inputMgr.pointerEvent.CLIC:
-		if ((target.onClick !== undefined) && (target.onClick !== null))
-			target.onClick();
-		break;
-	case this.inputMgr.pointerEvent.DRAG:
-		if ((target.onDrag !== undefined) && (target.onDrag !== null))
-			target.onDrag(pointerEvent.x, pointerEvent.y);
-		break;
-	}
-};
+//UiMgr.prototype.checkUI = function() {
+//	// obtain UI element under cursor
+//	var target = this.findControlXY(this.inputMgr.pointer.pixelX, this.inputMgr.pointer.pixelY);
+//	if (target === null)
+//		return;
+//
+//	var pointerEvent = this.inputMgr.checkPointerEvents();
+//	
+//	switch(pointerEvent.type) {
+//	case this.inputMgr.pointerEvent.NONE:
+//	default:
+//		return;
+//	case this.inputMgr.pointerEvent.CLIC_START:
+//		if ((target.onDrag !== undefined) && (target.onDrag !== null))
+//			target.onDrag(0, 0);
+//		break;
+//	case this.inputMgr.pointerEvent.CLIC:
+//		if ((target.onClick !== undefined) && (target.onClick !== null))
+//			target.onClick();
+//		break;
+//	case this.inputMgr.pointerEvent.DRAG:
+//		if ((target.onDrag !== undefined) && (target.onDrag !== null))
+//			target.onDrag(pointerEvent.x, pointerEvent.y);
+//		break;
+//	}
+//};
