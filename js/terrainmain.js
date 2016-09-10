@@ -240,7 +240,7 @@ var displayFunc = function(elapsed) {
 		wgl.gl.useProgram(wgl.shaders["CRT"]); // check for loading if source is in external files!        
 		wgl.gl.uniform1i(wgl.shaders["CRT"].uScanlines, wgl.yResolution);
 		wgl.gl.uniform1f(wgl.shaders["CRT"].uBarrelDistortion, 0.15);
-		wgl.gl.uniform1f(wgl.shaders["CRT"].uVignette, 10.0);
+		wgl.gl.uniform1f(wgl.shaders["CRT"].uVignette, 8.0);
 
 		wgl.gl.uniform1i(wgl.shaders["CRT"].uSampler, 0);
 		wgl.gl.uniform1i(wgl.shaders["CRT"].uBezelSampler, 1);
@@ -250,7 +250,7 @@ var displayFunc = function(elapsed) {
 		wgl.gl.uniformMatrix4fv(wgl.shaders["CRT"].uPMatrix, false, wgl.orthoProjMatrix);
 	}
 	else {
-		wgl.gl.useProgram(wgl.shaders["texture"]);        
+		wgl.gl.useProgram(wgl.shaders["texture"]);
 		wgl.gl.uniformMatrix4fv(wgl.shaders["texture"].uPMatrix, false, wgl.orthoProjMatrix);
 	}
 

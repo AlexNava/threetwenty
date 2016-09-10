@@ -48,16 +48,33 @@ void main()
 	{
 		scanlineNear = 1.0;
 	}
+	scanlineNear *= (4.0 / 7.0);
 
 	vec4 fragmentColor;
 	fragmentColor = texture2D(uSampler, vec2(distorted.s, discretizedTextureT));
-	fragmentColor = vec4(fragmentColor.rgb * scanlineNear, 1.0);
+	//fragmentColor = vec4(fragmentColor.rgb * scanlineNear, 1.0);
+
+	// Vignette
+	fragmentColor.rgb *= (1.0 - uVignette * sqDist);
+
+	if (fragmentColor.r > 0.5)
+		fragmentColor.r = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.r - 0.5));
+	else
+		fragmentColor.r = mix(0.0, scanlineNear, 2.0 * fragmentColor.r);
+	
+	if (fragmentColor.g > 0.5)
+		fragmentColor.g = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.g - 0.5));
+	else
+		fragmentColor.g = mix(0.0, scanlineNear, 2.0 * fragmentColor.g);
+	
+	if (fragmentColor.b > 0.5)
+		fragmentColor.b = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.b - 0.5));
+	else
+		fragmentColor.b = mix(0.0, scanlineNear, 2.0 * fragmentColor.b);
 
 	//fragmentColor = texture2D(uSampler, distorted);
 	//fragmentColor.rgb *= texture2D(uPhosphorSampler, distorted).rgb * vec3(1.5, 1.5, 1.5);
 
-	// Vignette
-	fragmentColor.rgb *= (1.0 - uVignette * sqDist);
 
 	// Bezel
 	vec4 bezelColor;
@@ -79,7 +96,7 @@ void main()
 		
 		glowColor.rgb *= (1.0 - uVignette * sqDist);
 
-		bezelColor.rgb += 0.8 * glowColor.rgb;
+		bezelColor.rgb += 0.7 * glowColor.rgb;
 
 		// Result
 		gl_FragColor = vec4((bezelColor.rgb * bezelColor.a + fragmentColor.rgb * (1.0 - bezelColor.a)), 1.0);
