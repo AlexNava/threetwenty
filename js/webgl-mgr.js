@@ -16,6 +16,11 @@ var WebGlMgr = function () {
 		this.displayFunc = displayFunction;
 	};
 
+	// Global timer --------------------
+	this.timer = {
+		lastTime: 0
+	};
+
 	this.tick = function() {
 		var timeNow = new Date().getTime();
 		var elapsed = 0;
@@ -422,11 +427,6 @@ var WebGlMgr = function () {
 		if (textureUnit === 0) {
 			this.textureInUse = this.textures[textureName.toString()];
 		}
-	};
-
-	// Global timer --------------------
-	this.timer = {
-		lastTime: 0
 	};
 
 	// Miscellaneous 2D drawing --------
