@@ -16,28 +16,6 @@ var WebGlMgr = function () {
 		this.displayFunc = displayFunction;
 	};
 
-	this.tick = function() {
-		var timeNow = new Date().getTime();
-		var elapsed = 0;
-
-		if (this.timer.lastTime !== 0) {
-			elapsed = timeNow - this.timer.lastTime;
-		}
-		this.timer.lastTime = timeNow;
-
-		this.displayFunc(elapsed);
-
-		requestAnimationFrame(this.tick.bind(this));
-	};
-
-	this.start = function() {
-		this.checkResize();
-		if (this.startFunc !== null) {
-			this.startFunc();
-		}
-
-		this.tick();
-	};
 
 	this.checkResize = function() {
 		var width = window.innerWidth;
@@ -365,9 +343,9 @@ var WebGlMgr = function () {
 	this.useFrameBuffer = function(fbName) {
 		if (fbName === null)
 		{
-			app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
+			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		}
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
 	}
 
 	this.useTextureFromFrameBuffer = function(fbName, textureUnit) {
@@ -422,11 +400,6 @@ var WebGlMgr = function () {
 		if (textureUnit === 0) {
 			this.textureInUse = this.textures[textureName.toString()];
 		}
-	};
-
-	// Global timer --------------------
-	this.timer = {
-		lastTime: 0
 	};
 
 	// Miscellaneous 2D drawing --------
@@ -515,7 +488,7 @@ var WebGlMgr = function () {
 	this.fullscreenRectangle = function(shaderId) {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
 		this.gl.vertexAttribPointer(this.shaders[shaderId].aVertexPosition, this.screenVertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenCoordBuffer);
 		this.gl.vertexAttribPointer(this.shaders[shaderId].aTextureCoord, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
 
