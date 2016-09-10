@@ -15,13 +15,7 @@ var InputMgr = function (glMgrObject) {
 	};
 
 	this.glMgr = glMgrObject;
-	this.uiMgr = null;
-	this.targetControl = null;
 	this.setup();
-};
-
-InputMgr.prototype.setUi = function (uiMgr) {
-	this.uiMgr = uiMgr;
 };
 
 InputMgr.prototype.setup = function () {
@@ -31,18 +25,10 @@ InputMgr.prototype.setup = function () {
 	// mouse or first touch
 	this.touchAsPointer = true;
 	this.pointerTouch = -1;
-
-	this.updatePointerPixelCoords = function() {
-		this.pointer.pixelX = app.xResolution * this.pointer.x / document.body.clientWidth;
-		this.pointer.pixelY = app.yResolution -	app.yResolution * this.pointer.y / document.body.clientHeight;
-	};
-	
 	this.pointer = {
 		status: this.pointerStatus.NONE,
-		x:      0,
-		y:      0,
-		pixelX: 0,
-		pixelY: 0
+		x: 0,
+		y: 0
 	};
 
 	this.previousPointer = {
@@ -187,20 +173,12 @@ InputMgr.prototype.setup = function () {
 	window.addEventListener("mousedown",
 		function (event) {
 			// ...
-			this.pointer.x = event.offsetX;
-			this.pointer.y = event.offsetY;
-			this.updatePointerPixelCoords();
-		
-			if (event.button != 0) { // main button
+			if (event.button != 0) // main button
 				return;
-			}
-
-			if (this.pointer.status === this.pointerStatus.NONE) {
+			if (this.pointer.status === this.pointerStatus.NONE)
+			{
 				// update pointer
 				this.pointer.status = this.pointerStatus.START_PRESS;
-				
-				// get actions target from UI mgr
-				this.targetControl = this.uiMgr.findControlXY(this.pointer.pixelX, this.pointer.pixelY);
 				// set timeout for longpress (i don't want to care right now)
 				//this.timeoutID = window.setTimeout();
 			}
@@ -211,28 +189,25 @@ InputMgr.prototype.setup = function () {
 	window.addEventListener("mousemove",
 		function (event) {
 			// clear longpress timeout
-			this.pointer.x = event.offsetX;
-			this.pointer.y = event.offsetY;
-			this.updatePointerPixelCoords();
-
 			switch (this.pointer.status) {
 			case this.pointerStatus.NONE:
-				// move pointer and update actions target
-				this.targetControl = this.uiMgr.findControlXY(this.pointer.pixelX, this.pointer.pixelY);
+				// just move pointer
+				this.pointer.x = event.offsetX;
+				this.pointer.y = event.offsetY;
 				break;
 			case this.pointerStatus.START_PRESS:
 			case this.pointerStatus.DRAG:
 				// drag
 				this.pointer.status = this.pointerStatus.DRAG;
-				if ((this.targetControl.onDrag !== undefined) && (this.targetControl.onDrag !== null)) {
-					this.targetControl.onDrag();
-				}
-
+				this.pointer.x = event.offsetX;
+				this.pointer.y = event.offsetY;
 				break;
 			case this.pointerStatus.PRESS_TIMEOUT:
 				// ignore
 				break;
 			}
+			this.pointer.pixelX = Math.floor(app.xResolution * this.pointer.x / document.body.clientWidth);
+			this.pointer.pixelY = app.yResolution - Math.floor(app.yResolution * this.pointer.y / document.body.clientHeight) - 1;
 		
 		}.bind(this),
 		false
@@ -242,31 +217,18 @@ InputMgr.prototype.setup = function () {
 		function (event) {
 		// clear timeout as well
 		// ...
-			this.pointer.x = event.offsetX;
-			this.pointer.y = event.offsetY;
-			this.updatePointerPixelCoords();
-
-			if ((this.targetControl !== undefined) && (this.targetControl !== null)) {
-				switch (this.pointer.status) {
-				case this.pointerStatus.NONE:
-					// Should never happen
-					break;
-				case this.pointerStatus.START_PRESS:
-					// fire press/click action
-					if ((this.targetControl.onClick !== undefined) && (this.targetControl.onClick !== null)) {
-						this.targetControl.onClick();
-					}
-					break;
-				case this.pointerStatus.DRAG:
-					// end drag
-//					if ((this.targetControl.onDrag !== undefined) && (this.targetControl.onDrag !== null)) {
-//						this.targetControl.onDrag();
-//					}
-					break;
-				case this.pointerStatus.PRESS_TIMEOUT:
-					// ignore
-					break;
-				}
+			switch (this.pointer.status) {
+			case this.pointerStatus.NONE:
+				// Should never happen
+				break;
+			case this.pointerStatus.START_PRESS:
+				// fire press/click action
+			case this.pointerStatus.DRAG:
+				// end drag
+				break;
+			case this.pointerStatus.PRESS_TIMEOUT:
+				// ignore
+				break;
 			}
 			this.pointer.status = this.pointerStatus.NONE;
 		}.bind(this),

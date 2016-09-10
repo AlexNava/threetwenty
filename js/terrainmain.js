@@ -216,7 +216,7 @@ var displayFunc = function(elapsed) {
 	font.drawTextXy("puppa = " + puppa,
 	                0, 30, "nokia");
 	
-	//ui.checkUI();
+	ui.checkUI();
 	input.drawPointer();
 	
 	//----------------------------------------------------------------------------------------------
