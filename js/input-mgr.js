@@ -95,9 +95,9 @@ InputMgr.prototype.setup = function () {
 				this.touchPoints[event.changedTouches[i].identifier].currentY = this.touchPoints[event.changedTouches[i].identifier].startY;
 
 				this.touchPoints[event.changedTouches[i].identifier].pixelX =
-					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
-				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
-					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+					this.glMgr.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
+					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 				
 				if (this.touchAsPointer === true)
 				{
@@ -129,9 +129,9 @@ InputMgr.prototype.setup = function () {
 					this.touchPoints[event.changedTouches[i].identifier].checked = false;
 				}
 				this.touchPoints[event.changedTouches[i].identifier].pixelX =
-					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
-				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
-					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+					this.glMgr.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
+					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 
 				if (this.touchAsPointer === true)
 				{
@@ -206,8 +206,8 @@ InputMgr.prototype.setup = function () {
 				// ignore
 				break;
 			}
-			this.pointer.pixelX = Math.floor(app.xResolution * this.pointer.x / document.body.clientWidth);
-			this.pointer.pixelY = app.yResolution - Math.floor(app.yResolution * this.pointer.y / document.body.clientHeight) - 1;
+			this.pointer.pixelX = Math.floor(this.glMgr.xResolution * this.pointer.x / document.body.clientWidth);
+			this.pointer.pixelY = this.glMgr.yResolution - Math.floor(this.glMgr.yResolution * this.pointer.y / document.body.clientHeight) - 1;
 		
 		}.bind(this),
 		false
