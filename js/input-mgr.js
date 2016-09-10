@@ -2,8 +2,16 @@ var InputMgr = function (glMgrObject) {
 	this.pointerStatus = {
 		NONE:          0,
 		START_PRESS:   1, // as soon as mousedown or touchstart
-		PRESS_TIMEOUT: 2, // to prevent dragging afterwards
+		PRESS_TIMEOUT: 2, // to prevent dragging afterwards // not used yet
 		DRAG:          3  // when dragging, prevents press or longpress afterwards
+	};
+	
+	this.pointerEvent = {
+		NONE:          0,
+		CLIC_START:    1, // mouse/touch down
+		CLIC:          2, // mouse/touch release
+		DRAG:          3, // mouse/touch drag
+		DRAG_END:      4  // mouse/touch release after drag
 	};
 
 	this.glMgr = glMgrObject;
@@ -22,7 +30,15 @@ InputMgr.prototype.setup = function () {
 		x: 0,
 		y: 0
 	};
-	this.previousPointer = this.pointer;
+
+	this.previousPointer = {
+		status: this.pointer.status,
+		x:      this.pointer.x,
+		y:      this.pointer.y,
+		pixelX: this.pointer.pixelX,
+		pixelY: this.pointer.pixelY
+	};
+	
 	this.pointerGraphicalInfo = {
 		textureName : '',
 		left :        0,
@@ -31,7 +47,8 @@ InputMgr.prototype.setup = function () {
 		height :      0,
 		originX :     0,
 		originY :     0
-	}
+	};
+
 	this.gestureLeft = false;
 	this.gestureRight = false;
 	this.gestureUp = false;
@@ -78,9 +95,9 @@ InputMgr.prototype.setup = function () {
 				this.touchPoints[event.changedTouches[i].identifier].currentY = this.touchPoints[event.changedTouches[i].identifier].startY;
 
 				this.touchPoints[event.changedTouches[i].identifier].pixelX =
-					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
-				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
-					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+					this.glMgr.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
+					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 				
 				if (this.touchAsPointer === true)
 				{
@@ -112,9 +129,9 @@ InputMgr.prototype.setup = function () {
 					this.touchPoints[event.changedTouches[i].identifier].checked = false;
 				}
 				this.touchPoints[event.changedTouches[i].identifier].pixelX =
-					app.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
-				this.touchPoints[event.changedTouches[i].identifier].pixelY = app.yResolution -
-					app.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
+					this.glMgr.xResolution * this.touchPoints[event.changedTouches[i].identifier].currentX / document.body.clientWidth;
+				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
+					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 
 				if (this.touchAsPointer === true)
 				{
@@ -189,8 +206,8 @@ InputMgr.prototype.setup = function () {
 				// ignore
 				break;
 			}
-			this.pointer.pixelX = Math.round(app.xResolution * this.pointer.x / document.body.clientWidth);
-			this.pointer.pixelY = Math.round(app.yResolution - app.yResolution * this.pointer.y / document.body.clientHeight);
+			this.pointer.pixelX = Math.floor(this.glMgr.xResolution * this.pointer.x / document.body.clientWidth);
+			this.pointer.pixelY = this.glMgr.yResolution - Math.floor(this.glMgr.yResolution * this.pointer.y / document.body.clientHeight) - 1;
 		
 		}.bind(this),
 		false
@@ -282,26 +299,46 @@ InputMgr.prototype.drawPointer = function() {
 	);
 };
 
-InputMgr.prototype.checkUI = function(uiMgr) {
-	// obtain UI element under cursor
-	var target = null;//uiMgr.findElement(this.pointer.x, this.pointer.y);
+InputMgr.prototype.checkPointerEvents = function() {
+	// Only check pointer status, the hit detection will be made in ui-mgr
+	// Here i'll check mouse state compared with its previous state
+	var ptrEvent = {
+		type: this.pointerEvent.NONE
+	};
+
+	//if (this.pointer.status === this.pointerStatus.NONE) {
+	//	if (target.hover !== undefined) target.hover();
+	//}
+	//else {
+	//	if (target.pressed !== undefined) target.pressed();
+	//}
+
+	if (this.pointer.status !== this.pointerStatus.NONE) {
+		var debug = 1;
+	}
 	
-	// Here i'll check mouse state compared with its previous state and will call the appropriate function on the target
-
-	if (this.pointer.status === this.pointerStatus.NONE) {
-		if (target.hover !== undefined) target.hover();
+	if ((this.pointer.status === this.pointerStatus.START_PRESS) && (this.previousPointer.status !== this.pointerStatus.START_PRESS)) {
+		ptrEvent.type = this.pointerEvent.CLIC_START;
 	}
-	else {
-		if (target.pressed !== undefined) target.pressed();
+	else if ((this.pointer.status === this.pointerStatus.NONE) && (this.previousPointer.status === this.pointerStatus.START_PRESS)) {
+		ptrEvent.type = this.pointerEvent.CLIC;
 	}
-	if ((this.pointer.status === this.pointerStatus.START_PRESS) && (this.pointer.status !== this.pointerStatus.START_PRESS))
-		if (target.startPress !== undefined) target.startPress();
-	if ((this.pointer.status === this.pointerStatus.NONE) && (this.pointer.status !== this.pointerStatus.START_PRESS))
-		if (target.shortPress !== undefined) target.shortPress();
-	if ((this.pointer.status === this.pointerStatus.DRAG) && ((this.pointer.x !== this.previousPointer.x) || (this.pointer.y - this.previousPointer.y)))
-		if (target.drag !== undefined) target.drag(this.pointer.x - this.previousPointer.x, this.pointer.y - this.previousPointer.y);
-	if ((this.pointer.status === this.pointerStatus.NONE) && (this.pointer.status !== this.pointerStatus.DRAG))
-		if (target.endDrag !== undefined) target.endDrag();
+	else if ((this.pointer.status === this.pointerStatus.DRAG) /*&& ((this.pointer.x !== this.previousPointer.x) || (this.pointer.y !== this.previousPointer.y))*/) {
+		ptrEvent.type = this.pointerEvent.DRAG;
+		ptrEvent.x = this.pointer.pixelX - this.previousPointer.pixelX;
+		ptrEvent.y = this.pointer.pixelY - this.previousPointer.pixelY;
+	}
+	else if ((this.pointer.status === this.pointerStatus.NONE) && (this.previousPointer.status === this.pointerStatus.DRAG)) {
+		ptrEvent.type = this.pointerEvent.DRAG_END;
+	}
 
-	this.previousPointer = this.pointer;
+	this.previousPointer = {
+		status: this.pointer.status,
+		x:      this.pointer.x,
+		y:      this.pointer.y,
+		pixelX: this.pointer.pixelX,
+		pixelY: this.pointer.pixelY
+	};
+
+	return ptrEvent;
 };
