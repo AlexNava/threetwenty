@@ -10,6 +10,7 @@ var moveView = function(x, y) {
 };
 
 var startFunc = function () {
+	wgl.checkResize();
 	
 	wgl.terraingrid = new Array(100);
 	for (var row = 0; row < 100; row++) {
@@ -304,4 +305,7 @@ var ui = new UiMgr(wgl, input, font);
 
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
 
-wgl.start();
+var app = new AppMgr();
+app.setGlMgr(wgl);
+app.setInputMgr(input);
+app.start();

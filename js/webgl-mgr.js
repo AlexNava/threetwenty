@@ -16,33 +16,6 @@ var WebGlMgr = function () {
 		this.displayFunc = displayFunction;
 	};
 
-	// Global timer --------------------
-	this.timer = {
-		lastTime: 0
-	};
-
-	this.tick = function() {
-		var timeNow = new Date().getTime();
-		var elapsed = 0;
-
-		if (this.timer.lastTime !== 0) {
-			elapsed = timeNow - this.timer.lastTime;
-		}
-		this.timer.lastTime = timeNow;
-
-		this.displayFunc(elapsed);
-
-		requestAnimationFrame(this.tick.bind(this));
-	};
-
-	this.start = function() {
-		this.checkResize();
-		if (this.startFunc !== null) {
-			this.startFunc();
-		}
-
-		this.tick();
-	};
 
 	this.checkResize = function() {
 		var width = window.innerWidth;

@@ -1,15 +1,37 @@
 "use strict";
 var AppMgr = function () {
 
-	this.startFunc = function() {};
-	this.tickFunc = function() {};
+	this.glMgr    = null;
+	this.inputMgr = null;
+	this.uiMgr    = null;
+	this.soundMgr = null;
 
-	this.setStartFunc = function(startFunction) {
-		this.startFunc = startFunction;
+	this.setGlMgr = function(glMgr) {
+		this.glMgr = glMgr;
 	};
 
-	this.setTickFunc = function(tickFunction) {
-		this.tickFunc = tickFunction;
+	this.setInputMgr = function(inputMgr) {
+		this.inputMgr = inputMgr;
+	};
+
+	this.setUiMgr = function(uiMgr) {
+		this.uiMgr = uiMgr;
+	};
+
+
+	// -------
+	this.startFunc = function() {
+		// todo: init all managers
+		if (this.glMgr != null)
+			this.glMgr.startFunc();
+	};
+
+	this.tickFunc = function(elapsed) {
+		// todo: poll input states
+		// todo: call ui functions
+		// todo: handle sounds queue?
+		if (this.glMgr != null)
+			this.glMgr.displayFunc(elapsed);
 	};
 
 	// Global timer --------------------
@@ -17,6 +39,7 @@ var AppMgr = function () {
 		lastTime: 0
 	};
 
+	// Global tick function
 	this.tick = function() {
 		var timeNow = new Date().getTime();
 		var elapsed = 0;
