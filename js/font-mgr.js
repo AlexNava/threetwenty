@@ -1,8 +1,8 @@
 var FontMgr = function (glMgrObject) {
 	this.alignments = {
-		LEFT: 0,
-		CENTER: 1,
-		RIGHT: 2
+		LEFT: 1,
+		CENTER: 2,
+		RIGHT: 3
 	};
 
 	this.glMgr = glMgrObject;

@@ -38,17 +38,29 @@ var startFunc = function () {
 	initTextures();
 	initShaders();
 
-	var puppaCtrl = ui.UiControl;
-	puppaCtrl.type = ui.controlType.AREA;
+	var puppaCtrl = new UiControl();
+	puppaCtrl.type = ControlType.AREA;
 	puppaCtrl.x = 0;
 	puppaCtrl.y = 0;
 	puppaCtrl.width = 320;
 	puppaCtrl.height = 240;
-	puppaCtrl.onClick = incPuppa;
+	puppaCtrl.onClick = null;
 	puppaCtrl.onDrag = moveView;
-	
+	puppaCtrl.immediate = false; // default
+
+	var fullScreenCtrl = new UiControl();
+	fullScreenCtrl.type = ControlType.AREA;
+	fullScreenCtrl.x = 0;
+	fullScreenCtrl.y = 40;
+	fullScreenCtrl.width = 60;
+	fullScreenCtrl.height = 10;
+	fullScreenCtrl.onClick = wgl.goFullscreen;
+	fullScreenCtrl.onDrag = null;
+	fullScreenCtrl.immediate = true; // necessary for switching fullscreen
+
 	ui.addControl('Puppa', puppaCtrl);
-	
+	ui.addControl('FS', fullScreenCtrl);
+
 };
 
 initTextures = function() {
@@ -216,8 +228,11 @@ var displayFunc = function(elapsed) {
 	
 	font.drawTextXy("puppa = " + puppa,
 	                0, 30, "nokia");
+
+	font.drawTextXy("Fullscreen",
+	                0, 40, "nokia");
 	
-	ui.checkUI();
+	//ui.checkUI();
 	input.drawPointer();
 	
 	//----------------------------------------------------------------------------------------------
@@ -308,4 +323,5 @@ font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
 var app = new AppMgr();
 app.setGlMgr(wgl);
 app.setInputMgr(input);
+app.setUiMgr(ui);
 app.start();
