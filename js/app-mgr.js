@@ -22,8 +22,10 @@ var AppMgr = function () {
 	// -------
 	this.startFunc = function() {
 		// todo: init all managers
-		this.inputMgr.setUi(this.uiMgr);
-		
+		if (this.inputMgr != null) {
+			this.inputMgr.setUi(this.uiMgr);
+		}
+
 		if ((this.glMgr != null) && (this.glMgr.startFunc != undefined) && (this.glMgr.startFunc != null)) {
 			this.glMgr.startFunc();
 		}
