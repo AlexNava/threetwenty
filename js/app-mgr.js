@@ -22,16 +22,21 @@ var AppMgr = function () {
 	// -------
 	this.startFunc = function() {
 		// todo: init all managers
-		if (this.glMgr != null)
+		this.inputMgr.setUi(this.uiMgr);
+		
+		if ((this.glMgr != null) && (this.glMgr.startFunc != undefined) && (this.glMgr.startFunc != null)) {
 			this.glMgr.startFunc();
+		}
 	};
 
 	this.tickFunc = function(elapsed) {
-		// todo: poll input states
-		// todo: call ui functions
+		if ((this.uiMgr != null) && (this.uiMgr.checkUI != undefined) && (this.uiMgr.checkUI != null)) {
+			this.uiMgr.checkUI();
+		}
 		// todo: handle sounds queue?
-		if (this.glMgr != null)
+		if ((this.glMgr != null) && (this.glMgr.displayFunc != undefined) && (this.glMgr.displayFunc != null)) {
 			this.glMgr.displayFunc(elapsed);
+		}
 	};
 
 	// Global timer --------------------
