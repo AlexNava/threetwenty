@@ -69,6 +69,7 @@ initTextures = function() {
 	wgl.loadTexture("bezel", "shaders/crt_images/bezel.png");
 	wgl.loadTexture("glow", "shaders/crt_images/glow.png");
 	wgl.loadTexture("phosphor", "shaders/crt_images/tv-coarse-1536.png");
+	wgl.loadTexture("button", "images/BasicButton.png");
 
 	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
@@ -228,6 +229,10 @@ var displayFunc = function(elapsed) {
 	
 	font.drawTextXy("puppa = " + puppa,
 	                0, 30, "nokia");
+
+	wgl.useTexture("button");
+	wgl.texturedRect2D(0, 40, 60, 12,
+	                   0, 0, 8, 8, 2);
 
 	font.drawTextXy("Fullscreen",
 	                0, 40, "nokia");
