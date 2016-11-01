@@ -1,47 +1,84 @@
+var puppa = 0;
+
+var incPuppa = function() {
+	++puppa;
+};
+
+var moveView = function(x, y) {
+	wgl.viewCenter.xSpeed = - x / wgl.viewScale;
+	wgl.viewCenter.ySpeed = - y / wgl.viewScale;
+};
+
 var startFunc = function () {
+	wgl.checkResize();
 	
-	app.terraingrid = new Array(100);
+	wgl.terraingrid = new Array(100);
 	for (var row = 0; row < 100; row++) {
-		app.terraingrid[row] = new Array(100);
+		wgl.terraingrid[row] = new Array(100);
 			for (var col = 0; col < 100; col++) {
 				var test = Math.random();
 				if (test < 0.6)
-					app.terraingrid[row][col] = 0;
+					wgl.terraingrid[row][col] = 0;
 				else
-					app.terraingrid[row][col] = 1;                    
+					wgl.terraingrid[row][col] = 1;                    
 			}
 	}
 
-	app.viewCenter = {};
-	app.viewCenter.x = 50;
-	app.viewCenter.y = 50;
-	app.viewCenter.xSpeed = 0;
-	app.viewCenter.ySpeed = 0;
-	app.viewScale = 16; // pixels x unit
+	wgl.viewCenter = {};
+	wgl.viewCenter.x = 50;
+	wgl.viewCenter.y = 50;
+	wgl.viewCenter.xSpeed = 0;
+	wgl.viewCenter.ySpeed = 0;
+	wgl.viewScale = 16; // pixels x unit
 
-	app.mvMatrix = mat4.create();
-	app.perspectiveProjMatrix = mat4.create();
+	wgl.mvMatrix = mat4.create();
+	wgl.perspectiveProjMatrix = mat4.create();
 
-	app.createFrameBuffer('puppa');
+	wgl.createFrameBuffer('Pippa');
 	initTextures();
 	initShaders();
+
+	var puppaCtrl = new UiControl();
+	puppaCtrl.type = ControlType.AREA;
+	puppaCtrl.x = 0;
+	puppaCtrl.y = 0;
+	puppaCtrl.width = 320;
+	puppaCtrl.height = 240;
+	puppaCtrl.onClick = null;
+	puppaCtrl.onDrag = moveView;
+	puppaCtrl.immediate = false; // default
+
+	var fullScreenCtrl = new UiControl();
+	fullScreenCtrl.type = ControlType.AREA;
+	fullScreenCtrl.x = 0;
+	fullScreenCtrl.y = 40;
+	fullScreenCtrl.width = 60;
+	fullScreenCtrl.height = 10;
+	fullScreenCtrl.onClick = wgl.goFullscreen;
+	fullScreenCtrl.onDrag = null;
+	fullScreenCtrl.immediate = true; // necessary for switching fullscreen
+
+	ui.addControl('Puppa', puppaCtrl);
+	ui.addControl('FS', fullScreenCtrl);
+
 };
 
 initTextures = function() {
-	app.loadTexture("terrainTiles", "images/terraintiles64.png");
-	app.loadTexture("mouse", "images/pointer.png");
-	app.loadTexture("bezel", "shaders/crt_images/bezel.png");
-	app.loadTexture("glow", "shaders/crt_images/glow.png");
-	app.loadTexture("phosphor", "shaders/crt_images/tv-coarse-1536.png");
+	wgl.loadTexture("terrainTiles", "images/terraintiles64.png");
+	wgl.loadTexture("mouse", "images/pointer.png");
+	wgl.loadTexture("bezel", "shaders/crt_images/bezel.png");
+	wgl.loadTexture("glow", "shaders/crt_images/glow.png");
+	wgl.loadTexture("phosphor", "shaders/crt_images/tv-coarse-1536.png");
+	wgl.loadTexture("button", "images/BasicButton.png");
 
 	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
 
 initShaders = function() {
 	// CRT
-	app.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
-		app.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
-		app.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
+	wgl.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
+		wgl.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
+		wgl.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
 	});
 };
 
@@ -126,22 +163,22 @@ var displayFunc = function(elapsed) {
 	animateFun(elapsed);
 
 	// draw scene on 1st FBO
-	app.useFrameBuffer('puppa');
-	app.gl.viewport(0, 0, app.xResolution, app.yResolution);
-	//app.gl.enable(app.gl.DEPTH_TEST);
+	wgl.useFrameBuffer('Pippa');
+	wgl.gl.viewport(0, 0, wgl.xResolution, wgl.yResolution);
+	//wgl.gl.enable(wgl.gl.DEPTH_TEST);
 
-	app.gl.clearColor(0.5, 0.5, 0.5, 1.0);
-	app.gl.clear(app.gl.COLOR_BUFFER_BIT | app.gl.DEPTH_BUFFER_BIT);
+	wgl.gl.clearColor(0.5, 0.5, 0.5, 1.0);
+	wgl.gl.clear(wgl.gl.COLOR_BUFFER_BIT | wgl.gl.DEPTH_BUFFER_BIT);
 
-	app.gl.disable(app.gl.DEPTH_TEST);
+	wgl.gl.disable(wgl.gl.DEPTH_TEST);
 
-	app.gl.enable(app.gl.BLEND);
-	app.gl.blendFunc(app.gl.SRC_ALPHA, app.gl.ONE_MINUS_SRC_ALPHA);
+	wgl.gl.enable(wgl.gl.BLEND);
+	wgl.gl.blendFunc(wgl.gl.SRC_ALPHA, wgl.gl.ONE_MINUS_SRC_ALPHA);
 
-	var firstRow = Math.round(app.viewCenter.y - (120 / app.viewScale)) - 1;
-	var firstCol = Math.round(app.viewCenter.x - (160 / app.viewScale)) - 1;
-	var lastRow = Math.round(app.viewCenter.y + (120 / app.viewScale)) + 1;
-	var lastCol = Math.round(app.viewCenter.x + (160 / app.viewScale)) + 1;
+	var firstRow = Math.round(wgl.viewCenter.y - (120 / wgl.viewScale)) - 1;
+	var firstCol = Math.round(wgl.viewCenter.x - (160 / wgl.viewScale)) - 1;
+	var lastRow = Math.round(wgl.viewCenter.y + (120 / wgl.viewScale)) + 1;
+	var lastCol = Math.round(wgl.viewCenter.x + (160 / wgl.viewScale)) + 1;
 	
 	if (firstRow < 0)
 		firstRow = 0;
@@ -154,16 +191,16 @@ var displayFunc = function(elapsed) {
 	
 	for (var row = firstRow; row < lastRow; row++) {
 		for (var col = firstCol; col < lastCol; col++) {
-			var x = Math.round(160 + (col - app.viewCenter.x) * app.viewScale);
-			var y = Math.round(120 + (row - app.viewCenter.y) * app.viewScale);
-			app.useTexture("terrainTiles");
-			var texCoord = tileCorner(app.terraingrid[row    ][col],
-			                          app.terraingrid[row    ][col + 1],
-			                          app.terraingrid[row + 1][col + 1],
-			                          app.terraingrid[row + 1][col],
+			var x = Math.round(160 + (col - wgl.viewCenter.x) * wgl.viewScale);
+			var y = Math.round(120 + (row - wgl.viewCenter.y) * wgl.viewScale);
+			wgl.useTexture("terrainTiles");
+			var texCoord = tileCorner(wgl.terraingrid[row    ][col],
+			                          wgl.terraingrid[row    ][col + 1],
+			                          wgl.terraingrid[row + 1][col + 1],
+			                          wgl.terraingrid[row + 1][col],
 			                          64);
 
-			app.texturedRect2D(x, y, app.viewScale, app.viewScale,
+			wgl.texturedRect2D(x, y, wgl.viewScale, wgl.viewScale,
 			                   texCoord.x, texCoord.y, 16, 16);
 			//font.drawTextXy(row + "," + col,
 			//x, y,
@@ -171,7 +208,7 @@ var displayFunc = function(elapsed) {
 		}
 	}
 
-	//font.drawTextXy("Canvas size: " + app.mainCanvas.width + "x" + app.mainCanvas.height,
+	//font.drawTextXy("Canvas size: " + wgl.mainCanvas.width + "x" + wgl.mainCanvas.height,
 	//                10, 130, "nokia");
 	
 	for (var i = 0; i < input.touchPoints.length; i++) {
@@ -182,98 +219,114 @@ var displayFunc = function(elapsed) {
 		}
 	}
 
+	
+	font.drawTextXy(wgl.viewCenter.x + "," + wgl.viewCenter.y,
+	                0, 0, "nokia");
 	font.drawTextXy(input.pointer.pixelX + "," + input.pointer.pixelY,
 	                0, 10, "nokia");
 	font.drawTextXy("Status: " + input.pointer.status,
 	                0, 20, "nokia");
 	
-	font.drawTextXy(app.viewCenter.x + "," + app.viewCenter.y,
-	                0, 0, "nokia");
+	font.drawTextXy("puppa = " + puppa,
+	                0, 30, "nokia");
+
+	wgl.useTexture("button");
+	wgl.texturedRect2D(0, 40, 60, 12,
+	                   0, 0, 8, 8, 2);
+
+	font.drawTextXy("Fullscreen",
+	                0, 40, "nokia");
 	
+	//ui.checkUI();
 	input.drawPointer();
 	
 	//----------------------------------------------------------------------------------------------
 	// draw textured quad from first FBO to screen
-	app.useFrameBuffer(null);
-	app.gl.viewport(0, 0, app.mainCanvas.width, app.mainCanvas.height);
+	wgl.useFrameBuffer(null);
+	wgl.gl.viewport(0, 0, wgl.mainCanvas.width, wgl.mainCanvas.height);
 	
-	app.gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	app.gl.clear(app.gl.COLOR_BUFFER_BIT);
+	wgl.gl.clearColor(0.0, 0.0, 0.0, 1.0);
+	wgl.gl.clear(wgl.gl.COLOR_BUFFER_BIT);
 
-	app.useTextureFromFrameBuffer('puppa');
-	app.useTexture('bezel', 1);
-	app.useTexture('glow', 2);
-	//app.useTexture('phosphor', 3);
-	//app.gl.texParameteri(app.gl.TEXTURE_2D, app.gl.TEXTURE_MAG_FILTER, app.gl.LINEAR);
-	//app.gl.texParameteri(app.gl.TEXTURE_2D, app.gl.TEXTURE_MIN_FILTER, app.gl.LINEAR);
+	wgl.useTextureFromFrameBuffer('Pippa');
+	wgl.useTexture('bezel', 1);
+	wgl.useTexture('glow', 2);
+	//wgl.useTexture('phosphor', 3);
+	//wgl.gl.texParameteri(wgl.gl.TEXTURE_2D, wgl.gl.TEXTURE_MAG_FILTER, wgl.gl.LINEAR);
+	//wgl.gl.texParameteri(wgl.gl.TEXTURE_2D, wgl.gl.TEXTURE_MIN_FILTER, wgl.gl.LINEAR);
 
 
-	if (app.shaders["CRT"] !== undefined) {
-		app.gl.useProgram(app.shaders["CRT"]); // check for loading if source is in external files!        
-		app.gl.uniform1i(app.shaders["CRT"].uScanlines, app.yResolution);
-		app.gl.uniform1f(app.shaders["CRT"].uBarrelDistortion, 0.15);
-		app.gl.uniform1f(app.shaders["CRT"].uVignette, 8.0);
+	if (wgl.shaders["CRT"] !== undefined) {
+		wgl.gl.useProgram(wgl.shaders["CRT"]); // check for loading if source is in external files!        
+		wgl.gl.uniform1i(wgl.shaders["CRT"].uScanlines, wgl.yResolution);
+		wgl.gl.uniform1f(wgl.shaders["CRT"].uBarrelDistortion, 0.15);
+		wgl.gl.uniform1f(wgl.shaders["CRT"].uVignette, 8.0);
 
-		app.gl.uniform1i(app.shaders["CRT"].uSampler, 0);
-		app.gl.uniform1i(app.shaders["CRT"].uBezelSampler, 1);
-		app.gl.uniform1i(app.shaders["CRT"].uGlowSampler, 2);
-		app.gl.uniform1i(app.shaders["CRT"].uPhosphorSampler, 3);
+		wgl.gl.uniform1i(wgl.shaders["CRT"].uSampler, 0);
+		wgl.gl.uniform1i(wgl.shaders["CRT"].uBezelSampler, 1);
+		wgl.gl.uniform1i(wgl.shaders["CRT"].uGlowSampler, 2);
+		wgl.gl.uniform1i(wgl.shaders["CRT"].uPhosphorSampler, 3);
 
-		app.gl.uniformMatrix4fv(app.shaders["CRT"].uPMatrix, false, app.orthoProjMatrix);
+		wgl.gl.uniformMatrix4fv(wgl.shaders["CRT"].uPMatrix, false, wgl.orthoProjMatrix);
 	}
 	else {
-		app.gl.useProgram(app.shaders["texture"]);
-		app.gl.uniformMatrix4fv(app.shaders["texture"].uPMatrix, false, app.orthoProjMatrix);
+		wgl.gl.useProgram(wgl.shaders["texture"]);
+		wgl.gl.uniformMatrix4fv(wgl.shaders["texture"].uPMatrix, false, wgl.orthoProjMatrix);
 	}
 
 	// Draw stuff
-	if (app.shaders["CRT"] !== undefined) {
-		app.fullscreenRectangle("CRT");
+	if (wgl.shaders["CRT"] !== undefined) {
+		wgl.fullscreenRectangle("CRT");
 	}
 	else {
-		app.fullscreenRectangle("texture");
+		wgl.fullscreenRectangle("texture");
 	}
 };
 
 var animateFun = function (elapsed) {
 
-	if (input.touchPoints[0] != undefined) {
-		if (input.touchPoints[0].checked === false) {
-			app.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
-			app.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
-			app.viewCenter.xSpeed *= (app.xResolution / document.body.clientWidth) / app.viewScale;
-			app.viewCenter.ySpeed *= (app.yResolution / document.body.clientHeight) / app.viewScale;
-		}
-		else {
-			app.viewCenter.xSpeed = 0;
-			app.viewCenter.ySpeed = 0;
-		}
-	}
+//	if (input.touchPoints[0] != undefined) {
+//		if (input.touchPoints[0].checked === false) {
+//			wgl.viewCenter.xSpeed = input.touchPoints[0].lastX - input.touchPoints[0].currentX;
+//			wgl.viewCenter.ySpeed = - input.touchPoints[0].lastY + input.touchPoints[0].currentY;
+//			wgl.viewCenter.xSpeed *= (wgl.xResolution / document.body.clientWidth) / wgl.viewScale;
+//			wgl.viewCenter.ySpeed *= (wgl.yResolution / document.body.clientHeight) / wgl.viewScale;
+//		}
+//		else {
+//			wgl.viewCenter.xSpeed = 0;
+//			wgl.viewCenter.ySpeed = 0;
+//		}
+//	}
 
-	app.viewCenter.x += app.viewCenter.xSpeed;
-	app.viewCenter.y += app.viewCenter.ySpeed;
+	wgl.viewCenter.x += wgl.viewCenter.xSpeed;
+	wgl.viewCenter.y += wgl.viewCenter.ySpeed;
 
-	if (app.viewCenter.x < 0)
-		app.viewCenter.x = 0;
-	if (app.viewCenter.y < 0)
-		app.viewCenter.y = 0;
-	if (app.viewCenter.x > 100)
-		app.viewCenter.x = 100;
-	if (app.viewCenter.y > 100)
-		app.viewCenter.y = 100;
+	if (wgl.viewCenter.x < 0)
+		wgl.viewCenter.x = 0;
+	if (wgl.viewCenter.y < 0)
+		wgl.viewCenter.y = 0;
+	if (wgl.viewCenter.x > 100)
+		wgl.viewCenter.x = 100;
+	if (wgl.viewCenter.y > 100)
+		wgl.viewCenter.y = 100;
 
 	input.pollTouchGestures();
 };
 
-var app = new WebGlMgr();
-app.init("MainCanvas", 320, 240);
-app.setStartFunc(startFunc);
-app.setDisplayFunc(displayFunc);
-window.addEventListener("resize", app.checkResize.bind(app));
+var wgl = new WebGlMgr();
+wgl.init("MainCanvas", 320, 240);
+wgl.setStartFunc(startFunc);
+wgl.setDisplayFunc(displayFunc);
+window.addEventListener("resize", wgl.checkResize.bind(wgl));
 
-var input = new InputMgr(app);
+var input = new InputMgr(wgl);
+var font = new FontMgr(wgl);
+var ui = new UiMgr(wgl, input, font);
 
-var font = new FontMgr(app);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
 
+var app = new AppMgr();
+app.setGlMgr(wgl);
+app.setInputMgr(input);
+app.setUiMgr(ui);
 app.start();

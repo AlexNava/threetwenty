@@ -16,28 +16,6 @@ var WebGlMgr = function () {
 		this.displayFunc = displayFunction;
 	};
 
-	this.tick = function() {
-		var timeNow = new Date().getTime();
-		var elapsed = 0;
-
-		if (this.timer.lastTime !== 0) {
-			elapsed = timeNow - this.timer.lastTime;
-		}
-		this.timer.lastTime = timeNow;
-
-		this.displayFunc(elapsed);
-
-		requestAnimationFrame(this.tick.bind(this));
-	};
-
-	this.start = function() {
-		this.checkResize();
-		if (this.startFunc !== null) {
-			this.startFunc();
-		}
-
-		this.tick();
-	};
 
 	this.checkResize = function() {
 		var width = window.innerWidth;
@@ -224,7 +202,7 @@ var WebGlMgr = function () {
 		// Init textured aligned rectangle shader
 		this.loadShaderSources("rect2d", Rect2DTextureVertexShader, BasicTextureFragmentShader);
 		this.shaderAttributeArrays("rect2d", ["aVertexPosition", "aTextureCoord"]);
-		this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler", "uBaseColor"]);
+		this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler", "uBaseColor", "uBorder"]);
 
 		var identityMv = mat4.create();
 
@@ -365,9 +343,9 @@ var WebGlMgr = function () {
 	this.useFrameBuffer = function(fbName) {
 		if (fbName === null)
 		{
-			app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, null);
+			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
 		}
-		app.gl.bindFramebuffer(app.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
+		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
 	}
 
 	this.useTextureFromFrameBuffer = function(fbName, textureUnit) {
@@ -424,11 +402,6 @@ var WebGlMgr = function () {
 		}
 	};
 
-	// Global timer --------------------
-	this.timer = {
-		lastTime: 0
-	};
-
 	// Miscellaneous 2D drawing --------
 	this.drawFunctions = {
 		QUAD2D:           0,
@@ -482,8 +455,11 @@ var WebGlMgr = function () {
 	};
 
 	this.texturedRect2D = function(bottomLeftX, bottomLeftY, width, height,
-								   bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight) {
+	                               bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight, border) {
 		var shad = this.shaders["rect2d"];
+		if (border === undefined) {
+			border = 0.0;
+		}
 		
 		if (this.lastFunction !== this.drawFunctions.RECT2D)
 		{
@@ -503,10 +479,12 @@ var WebGlMgr = function () {
 		this.gl.uniform2fv(shad.uSize, [width, height]);
 		this.gl.uniform2fv(shad.uTextureCornerPosition, [bottomLeftTextureX, bottomLeftTextureY]);
 		this.gl.uniform2fv(shad.uTextureSelectionSize, [textureSelectionWidth, textureSelectionHeight]);
-		
-		if (this.textureInUse !== undefined)
+		this.gl.uniform1f(shad.uBorder, border);
+
+		if (this.textureInUse !== undefined) {
 			this.gl.uniform2fv(shad.uTextureSize, [this.textureInUse.width, this.textureInUse.height]);
-	
+		}
+
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.rectVertexPosBuffer.numItems);
 
 		this.lastFunction = this.drawFunctions.RECT2D;
@@ -515,7 +493,7 @@ var WebGlMgr = function () {
 	this.fullscreenRectangle = function(shaderId) {
 		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenVertexBuffer);
 		this.gl.vertexAttribPointer(this.shaders[shaderId].aVertexPosition, this.screenVertexBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, app.screenCoordBuffer);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.screenCoordBuffer);
 		this.gl.vertexAttribPointer(this.shaders[shaderId].aTextureCoord, this.screenCoordBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.screenVertexBuffer.numItems);
 
