@@ -7,6 +7,12 @@ ControlType = {
 	TEXTINPUT: 5     // Textual input. TODO: use html control for mobile compatibility
 };
 
+ControlMode = {
+	INVALID: -1,
+	MENU_UI: 1,
+	GAME_UI: 2
+}
+
 var UiControl = function() {
 	this.type      = ControlType.INVALID;
 	this.x         = 0;
@@ -25,6 +31,7 @@ var UiMgr = function(glMgrObject, inputMgrObject, fontMgrObject) {
 
 	this.controls = [];
 	this.targetControl = null;
+	this.mode = ControlMode.MENU_UI;
 }
 
 // controls with these methods:
@@ -36,7 +43,12 @@ var UiMgr = function(glMgrObject, inputMgrObject, fontMgrObject) {
 // drag
 // endDrag
 // called by input-mgr
-
+//
+// TODO: game controls - multitouch with methods:
+// click (endpress)
+// press (continuous, even with drag) // x, y
+// drag (finger moved)                // xRel, yRel, 
+//
 // MAYBE LATER. MAYBE.
 // pages with controls
 // page methods: onEntry (construction, elements initialization); tick (animation)
@@ -44,6 +56,13 @@ var UiMgr = function(glMgrObject, inputMgrObject, fontMgrObject) {
 // make it mobile friendly so no crazy keyboard handlers for text input, try to use html5 controls (maybe hidden)
 //
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Classes
+
+UiMgr.prototype.setMode = function(newMode) {
+	if ((newMode === ControlMode.MENU_UI) || (newMode === ControlMode.GAME_UI)){
+		this.mode = newMode;
+		// clear commands and actions?
+	}
+}
 
 UiMgr.prototype.removeControls = function() {
 	this.controls = [];

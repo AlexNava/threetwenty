@@ -14,6 +14,9 @@ var InputMgr = function (glMgrObject) {
 		DRAG_END:      4  // mouse/touch release after drag
 	};
 
+	this.pointerVisible = false;
+	this.prevPointerVisible = false;
+	this.mouseIndex = -1;
 	this.glMgr = glMgrObject;
 	this.uiMgr = null;
 
@@ -29,7 +32,6 @@ InputMgr.prototype.setup = function () {
 	this.touchPoints = new Array(0);
 	this.timeoutID = null;
 	// mouse or first touch
-	this.touchAsPointer = true;
 	this.pointerTouch = -1;
 
 	this.updatePointerPixelCoords = function() {
@@ -98,6 +100,8 @@ InputMgr.prototype.setup = function () {
 	window.addEventListener("touchstart",
 		function (event) {
 			event.preventDefault();
+			this.pointerVisible = false;
+
 			var timeNow = new Date().getTime();
 			for (var i = 0; i < event.changedTouches.length; i++) {
 				this.touchPoints[event.changedTouches[i].identifier] = {
@@ -113,8 +117,7 @@ InputMgr.prototype.setup = function () {
 				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
 					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 				
-				if (this.touchAsPointer === true)
-				{
+				if (this.uiMgr.mode === ControlMode.MENU_UI) {
 					if (this.pointerTouch === -1)
 					{
 						this.pointerTouch = event.changedTouches[i].identifier;
@@ -124,6 +127,8 @@ InputMgr.prototype.setup = function () {
 						// Update target on touch start
 						this.uiMgr.updateTargetControl(this.pointer.pixelX, this.pointer.pixelY);
 					}
+				}
+				else if (this.uiMgr.mode === ControlMode.GAME_UI) {
 				}
 			}
 		}.bind(this),
@@ -149,14 +154,15 @@ InputMgr.prototype.setup = function () {
 				this.touchPoints[event.changedTouches[i].identifier].pixelY = this.glMgr.yResolution -
 					this.glMgr.yResolution * this.touchPoints[event.changedTouches[i].identifier].currentY / document.body.clientHeight;
 
-				if (this.touchAsPointer === true)
-				{
+				if (this.uiMgr.mode === ControlMode.MENU_UI) {
 					if (this.pointerTouch === event.changedTouches[i].identifier)
 					{
 						this.pointer.status = this.pointerStatus.DRAG;
 						this.pointer.pixelX = this.touchPoints[event.changedTouches[i].identifier].pixelX;
 						this.pointer.pixelY = this.touchPoints[event.changedTouches[i].identifier].pixelY;
 					}
+				}
+				else if (this.uiMgr.mode === ControlMode.GAME_UI) {
 				}
 			}
 		}.bind(this),
@@ -169,23 +175,23 @@ InputMgr.prototype.setup = function () {
 			for (var i = 0; i < event.changedTouches.length; i++){
 				this.touchPoints[event.changedTouches[i].identifier] = undefined;
 
-				if (this.touchAsPointer === true)
-				{
-					if (this.pointerTouch === event.changedTouches[i].identifier)
-					{
+				if (this.uiMgr.mode === ControlMode.MENU_UI) {
+					if (this.pointerTouch === event.changedTouches[i].identifier) {
 						if ((this.pointer.status === this.pointerStatus.START_PRESS) && (this.uiMgr !== undefined) && (this.uiMgr !== null)) {
 							// fire press/click action (is set as immediate)
 							if ((this.uiMgr.targetControl != null) && (this.uiMgr.targetControl.immediate === true) && (this.uiMgr.targetControl.onClick != null)) {
 								this.uiMgr.targetControl.onClick();
 							}
 						}
-						
+
 						this.pointerTouch = -1;
 						this.pointer.status = this.pointerStatus.NONE;
 						//this.pointer.x = this.touchPoints[event.changedTouches[i].identifier].pixelX;
 						//this.pointer.y = this.touchPoints[event.changedTouches[i].identifier].pixelY;
 					}
 				}
+				else if (this.uiMgr.mode === ControlMode.GAME_UI) {
+				}				
 			}
 
 		}.bind(this),
@@ -195,20 +201,21 @@ InputMgr.prototype.setup = function () {
 	// http://www.html5rocks.com/en/mobile/touchandmouse/
 	window.addEventListener("mousedown",
 		function (event) {
-			// ...
-			//this.pointer.x = event.offsetX;
-			//this.pointer.y = event.offsetY;
-			//this.updatePointerPixelCoords();
-		
+			this.pointerVisible = true;
+
 			if (event.button != 0) { // main button
 				return;
 			}
 
-			if (this.pointer.status === this.pointerStatus.NONE) {
-				// update pointer
-				this.pointer.status = this.pointerStatus.START_PRESS;
-				// set timeout for longpress (i don't want to care right now)
-				//this.timeoutID = window.setTimeout();
+			if (this.uiMgr.mode === ControlMode.MENU_UI) {
+				if (this.pointer.status === this.pointerStatus.NONE) {
+					// update pointer
+					this.pointer.status = this.pointerStatus.START_PRESS;
+					// set timeout for longpress (i don't want to care right now)
+					//this.timeoutID = window.setTimeout();
+				}
+			}
+			else if (this.uiMgr.mode === ControlMode.GAME_UI) {
 			}
 		}.bind(this),
 		false
@@ -216,27 +223,34 @@ InputMgr.prototype.setup = function () {
 
 	window.addEventListener("mousemove",
 		function (event) {
-			// clear longpress timeout
+			this.pointerVisible = true;
+
+			// clear longpress timeout, maybe later
+
 			this.pointer.x = event.offsetX;
 			this.pointer.y = event.offsetY;
 			this.updatePointerPixelCoords();
 
-			switch (this.pointer.status) {
-			case this.pointerStatus.NONE:
-				// move pointer, update target
-				this.uiMgr.updateTargetControl(this.pointer.pixelX, this.pointer.pixelY);
-				break;
-			case this.pointerStatus.START_PRESS:
-			case this.pointerStatus.DRAG:
-				// drag
-				this.pointer.status = this.pointerStatus.DRAG;
+			if (this.uiMgr.mode === ControlMode.MENU_UI) {
+				switch (this.pointer.status) {
+				case this.pointerStatus.NONE:
+					// move pointer, update target
+					this.uiMgr.updateTargetControl(this.pointer.pixelX, this.pointer.pixelY);
+					break;
+				case this.pointerStatus.START_PRESS:
+				case this.pointerStatus.DRAG:
+					// drag
+					this.pointer.status = this.pointerStatus.DRAG;
 
-				break;
-			case this.pointerStatus.PRESS_TIMEOUT:
-				// ignore
-				break;
+					break;
+				case this.pointerStatus.PRESS_TIMEOUT:
+					// ignore
+					break;
+				}
 			}
-		
+			else if (this.uiMgr.mode === ControlMode.GAME_UI) {
+			}
+
 		}.bind(this),
 		false
 	);
@@ -248,26 +262,30 @@ InputMgr.prototype.setup = function () {
 			//this.pointer.y = event.offsetY;
 			//this.updatePointerPixelCoords();
 
-			switch (this.pointer.status) {
-			case this.pointerStatus.NONE:
-				// Should never happen
-				break;
-			case this.pointerStatus.START_PRESS:
-				// fire press/click action (is set as immediate)
-				if ((this.uiMgr !== undefined) && (this.uiMgr !== null)) {
-					if ((this.uiMgr.targetControl != null) && (this.uiMgr.targetControl.immediate === true) && (this.uiMgr.targetControl.onClick != null)) {
-						this.uiMgr.targetControl.onClick();
+			if (this.uiMgr.mode === ControlMode.MENU_UI) {
+				switch (this.pointer.status) {
+				case this.pointerStatus.NONE:
+					// Should never happen
+					break;
+				case this.pointerStatus.START_PRESS:
+					// fire press/click action (is set as immediate)
+					if ((this.uiMgr !== undefined) && (this.uiMgr !== null)) {
+						if ((this.uiMgr.targetControl != null) && (this.uiMgr.targetControl.immediate === true) && (this.uiMgr.targetControl.onClick != null)) {
+							this.uiMgr.targetControl.onClick();
+						}
 					}
+					break;
+				case this.pointerStatus.DRAG:
+					// end drag
+					break;
+				case this.pointerStatus.PRESS_TIMEOUT:
+					// ignore
+					break;
 				}
-				break;
-			case this.pointerStatus.DRAG:
-				// end drag
-				break;
-			case this.pointerStatus.PRESS_TIMEOUT:
-				// ignore
-				break;
+				this.pointer.status = this.pointerStatus.NONE;
 			}
-			this.pointer.status = this.pointerStatus.NONE;
+			else if (this.uiMgr.mode === ControlMode.GAME_UI) {
+			}
 		}.bind(this),
 		false
 	);
@@ -323,17 +341,27 @@ InputMgr.prototype.setPointer = function(textureName, left, bottom, width, heigh
 };
 
 InputMgr.prototype.drawPointer = function() {
-	this.glMgr.useTexture(this.pointerGraphicalInfo.textureName);
-	this.glMgr.texturedRect2D(
-		this.pointer.pixelX - this.pointerGraphicalInfo.originX,
-		this.pointer.pixelY - this.pointerGraphicalInfo.originY,
-		this.pointerGraphicalInfo.width,
-		this.pointerGraphicalInfo.height,
-		this.pointerGraphicalInfo.left,
-		this.pointerGraphicalInfo.bottom,
-		this.pointerGraphicalInfo.width,
-		this.pointerGraphicalInfo.height
-	);
+	if (this.pointerVisible) {
+		if (!this.pointerVisible && this.prevPointerVisible) {
+			document.getElementById('MainCanvas').style.cursor = '';
+		}
+		else if (this.pointerVisible && !this.prevPointerVisible) {
+			document.getElementById('MainCanvas').style.cursor = 'none';
+		}
+		this.prevPointerVisible = this.pointerVisible;
+
+		this.glMgr.useTexture(this.pointerGraphicalInfo.textureName);
+		this.glMgr.texturedRect2D(
+			this.pointer.pixelX - this.pointerGraphicalInfo.originX,
+			this.pointer.pixelY - this.pointerGraphicalInfo.originY,
+			this.pointerGraphicalInfo.width,
+			this.pointerGraphicalInfo.height,
+			this.pointerGraphicalInfo.left,
+			this.pointerGraphicalInfo.bottom,
+			this.pointerGraphicalInfo.width,
+			this.pointerGraphicalInfo.height
+		);
+	}
 };
 
 InputMgr.prototype.checkPointerEvents = function() {

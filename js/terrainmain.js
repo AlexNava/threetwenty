@@ -44,7 +44,7 @@ var startFunc = function () {
 	puppaCtrl.y = 0;
 	puppaCtrl.width = 320;
 	puppaCtrl.height = 240;
-	puppaCtrl.onClick = null;
+	puppaCtrl.onClick = incPuppa;
 	puppaCtrl.onDrag = moveView;
 	puppaCtrl.immediate = false; // default
 
@@ -261,7 +261,7 @@ var displayFunc = function(elapsed) {
 	//wgl.gl.texParameteri(wgl.gl.TEXTURE_2D, wgl.gl.TEXTURE_MIN_FILTER, wgl.gl.LINEAR);
 
 
-	if (wgl.shaders["CRT"] !== undefined) {
+	if (false && (wgl.shaders["CRT"] !== undefined)) {
 		wgl.gl.useProgram(wgl.shaders["CRT"]); // check for loading if source is in external files!        
 		wgl.gl.uniform1i(wgl.shaders["CRT"].uScanlines, wgl.yResolution);
 		wgl.gl.uniform1f(wgl.shaders["CRT"].uBarrelDistortion, 0.15);
