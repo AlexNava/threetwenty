@@ -18,9 +18,11 @@ var Map = function() {
 	this.tileWidth = 0;
 	this.tileHeight = 0;
 	this.tilesets = [];
+	this.layers = [];
 }
 
 var Tileset = function() {
+	this.name = "";
 	this.texture = null;
 	this.textureName = "";
 	this.tileWidth = 0;
@@ -37,6 +39,13 @@ var Tileset = function() {
 var Tile = function() {
 	this.x = 0;
 	this.y = 0;
+}
+
+var Layer = function() {
+	this.name = "";
+	this.width = 0;
+	this.height = 0;
+	this.data = [];
 }
 
 TileMgr.prototype.loadMap = function (alias, xmlFile) {
@@ -67,10 +76,12 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 			else if (renderOrder == "left-up")
 				map.renderOrder = RenderOrder.LEFT_UP;
 
+			// Tilesets (only embedded for now)
 			var xmlTileSets = xmlMap.getElementsByTagName("tileset");
 			for (var iTs = 0; iTs < xmlTileSets.length; ++iTs)
 			{
 				var tileset = new Tileset();
+				tileset.name =        xmlTileSets[iTs].getAttribute("name");
 				tileset.tileWidth =   parseInt(xmlTileSets[iTs].getAttribute("tilewidth"));
 				tileset.tileHeight =  parseInt(xmlTileSets[iTs].getAttribute("tileheight"));
 				tileset.margin =      parseInt(xmlTileSets[iTs].getAttribute("margin"));
@@ -109,10 +120,31 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 						curY += (tileset.tileHeight + tileset.spacing);
 					}
 				}
-				
+
 				map.tilesets.push(tileset);
 			}
-		
+
+			// Layers
+			var xmlLayers = xmlMap.getElementsByTagName("layer");
+			for (var iLa = 0; iLa < xmlLayers.length; ++iLa) {
+				var layer = new Layer();
+				layer.name =    xmlLayers[iLa].getAttribute("name");
+				layer.width =   parseInt(xmlLayers[iLa].getAttribute("width"));
+				layer.height =  parseInt(xmlLayers[iLa].getAttribute("height"));
+
+				// Map data. I expect this to be zlib compressed, base64 encoded
+				var xmlData =      xmlLayers[iLa].getElementsByTagName("data")[0];
+				var compression =  xmlData.getAttribute("compression");
+				var encoding =     xmlData.getAttribute("encoding");
+				if ((encoding === "base64") && (compression === "zlib")) {
+					var textData = xmlData.firstChild.nodeValue.trim();
+					var a = 1;
+				}
+				map.layers[layer.name] = layer;
+			}
+
+
+			
 			this.maps[alias] = map;
 			/*
 			var font = xmlParse.getElementsByTagName("font")[0];
