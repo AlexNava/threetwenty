@@ -49,7 +49,7 @@ FontMgr.prototype.loadFontFiles = function (alias, xmlFile, bitmapFile) {
 			}
 			
 			this.glMgr.loadTexture("Font-texture-" + alias, bitmapFile);
-			
+
 			this.fonts[alias] = tempFont;
 			this.currentFont = alias;
 		}.bind(this),

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.0" orientation="orthogonal" renderorder="right-down" width="40" height="40" tilewidth="32" tileheight="32" nextobjectid="1">
+ <tileset firstgid="1" source="desert.tsx"/>
+ <layer name="Ground" width="40" height="40">
+  <properties>
+   <property name="scale" value="2"/>
+  </properties>
+  <data encoding="base64" compression="zlib">
+   eJztmH1PwjAQhw9IBCQR1ER8iTCYIqLCvv+n8xbWbLk03fVobyXZH0+gSUcffj3YrSsAWEXkDpkji8jrSDha/NYJeF1LfmVWT8gSeU7Ax8YAGSIj4h1jrRfk1YM3ZIrcIjOFLDbI1oM8ot/e4feBHJDPDv1c+eXMPDX8dgn6FcSL+v3Cuf7/lP1ozdFxW160LkP42X4He5Kfed/mR3MNld8XGRsf3/xi7y/1pHxX+8flJ4DfuGIC9b3IxYg5z/B+od8c6v7CfFcXM+Y823USvyXU/cU98tDCI3Oe7bqYtadNBvY+JyXPTNFH0ptpeB2rV85/Z/P+kwdanwvHr3QqqrkSv0LodgrkF/K5gNa1Rn6GLNL+NvsLrfo7efjRLH1yMvslrQGJH6febf2hxDNGfiGR9Gauz7uBc89lxrbnkWZ9aWH2rTw36eLMJOtgzWuFZpXa2WC/xz09l/EPoJO32Q==
+  </data>
+ </layer>
+</map>

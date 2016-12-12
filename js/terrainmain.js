@@ -15,13 +15,13 @@ var startFunc = function () {
 	wgl.terraingrid = new Array(100);
 	for (var row = 0; row < 100; row++) {
 		wgl.terraingrid[row] = new Array(100);
-			for (var col = 0; col < 100; col++) {
-				var test = Math.random();
-				if (test < 0.6)
-					wgl.terraingrid[row][col] = 0;
-				else
-					wgl.terraingrid[row][col] = 1;                    
-			}
+		for (var col = 0; col < 100; col++) {
+			var test = Math.random();
+			if (test < 0.6)
+				wgl.terraingrid[row][col] = 0;
+			else
+				wgl.terraingrid[row][col] = 1;                    
+		}
 	}
 
 	wgl.viewCenter = {};
