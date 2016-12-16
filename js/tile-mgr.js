@@ -23,12 +23,12 @@ var Map = function() {
 
 var Tileset = function() {
 	this.name = "";
-	this.texture = null;
 	this.textureName = "";
 	this.tileWidth = 0;
 	this.tileHeight = 0;
 	this.margin = 0;
 	this.spacing = 0;
+	this.firstId = 0;
 	this.tileCount = 0;
 	this.tiles = [];
 	this.imageFile = "";
@@ -86,6 +86,7 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				tileset.tileHeight =  parseInt(xmlTileSets[iTs].getAttribute("tileheight"));
 				tileset.margin =      parseInt(xmlTileSets[iTs].getAttribute("margin"));
 				tileset.spacing =     parseInt(xmlTileSets[iTs].getAttribute("spacing"));
+				tileset.firstId =     parseInt(xmlTileSets[iTs].getAttribute("firstgid"));
 				tileset.tileCount =   parseInt(xmlTileSets[iTs].getAttribute("tilecount"));
 
 				tileset.textureName = "Tileset-texture-" + xmlTileSets[iTs].getAttribute("name");
@@ -101,7 +102,8 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				// Image coordinates go right, down while WebGL's go right, up
 				var curX = tileset.margin;
 				var curY = tileset.margin;
-				while (tileset.tiles.length < tileset.tileCount) {
+				var iTile = 0; // tileset.firstId will be used when postprocessing the map
+				while (iTile < tileset.tileCount) {
 					// Check if we are past last row
 					if ((curY + tileset.tileHeight) > tileset.imageHeight)
 						break;
@@ -110,9 +112,10 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 					var tile = new Tile();
 					tile.x = curX;
 					tile.y = tileset.imageHeight - (curY + tileset.tileHeight);
-					tileset.tiles.push(tile);
+					tileset.tiles[iTile] = tile;
 					
 					// Position for next tile
+					++iTile;
 					curX += (tileset.tileWidth + tileset.spacing);
 					if ((curX + tileset.tileWidth) > tileset.imageWidth) {
 						// past last column
@@ -137,8 +140,26 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				var compression =  xmlData.getAttribute("compression");
 				var encoding =     xmlData.getAttribute("encoding");
 				if ((encoding === "base64") && (compression === "zlib")) {
-					var textData = xmlData.firstChild.nodeValue.trim();
+					var b64Data = xmlData.firstChild.nodeValue.trim();
 					var a = 1;
+					// Decode base64 (convert ascii to binary)
+					var strData     = atob(b64Data);
+
+					// Convert binary string to character-number array
+					var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
+
+					// Turn number array into byte-array
+					var binData     = new Uint8Array(charData);
+
+					// Pako magic
+					var data        = pako.inflate(binData);
+
+					var data32 = new Uint32Array(data.buffer);
+					// Convert gunzipped byteArray back to ascii string:
+					//var strData     = String.fromCharCode.apply(null, new Uint16Array(data));
+					//var uncompressedData = pako.gzip(textData,{ });
+					alert("uncompressed string - " + data32);
+					
 				}
 				map.layers[layer.name] = layer;
 			}
