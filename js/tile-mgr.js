@@ -92,11 +92,11 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				tileset.textureName = "Tileset-texture-" + xmlTileSets[iTs].getAttribute("name");
 				
 				var xmlImage = xmlTileSets[iTs].getElementsByTagName("image")[0];
-				tileset.imageFile =   xmlImage.getAttribute("source");
+				tileset.imageFile =   xmlFilePath + xmlImage.getAttribute("source");
 				tileset.imageWidth =  parseInt(xmlImage.getAttribute("width"));
 				tileset.imageHeight = parseInt(xmlImage.getAttribute("height"));
 
-				this.glMgr.loadTexture(tileset.textureName, xmlFilePath + tileset.imageFile);
+				this.glMgr.loadTexture(tileset.textureName, tileset.imageFile);
 				
 				// Create tiles
 				// Image coordinates go right, down while WebGL's go right, up
@@ -125,6 +125,7 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				}
 
 				map.tilesets.push(tileset);
+				map.tilesets[tileset.name] = tileset;
 			}
 
 			// Layers
@@ -141,26 +142,18 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				var encoding =     xmlData.getAttribute("encoding");
 				if ((encoding === "base64") && (compression === "zlib")) {
 					var b64Data = xmlData.firstChild.nodeValue.trim();
-					var a = 1;
-					// Decode base64 (convert ascii to binary)
-					var strData     = atob(b64Data);
+					var strData = atob(b64Data);
 
 					// Convert binary string to character-number array
-					var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
-
+					var charData = strData.split('').map(function(x){return x.charCodeAt(0);});
 					// Turn number array into byte-array
-					var binData     = new Uint8Array(charData);
+					var binData = new Uint8Array(charData);
 
-					// Pako magic
-					var data        = pako.inflate(binData);
-
-					var data32 = new Uint32Array(data.buffer);
-					// Convert gunzipped byteArray back to ascii string:
-					//var strData     = String.fromCharCode.apply(null, new Uint16Array(data));
-					//var uncompressedData = pako.gzip(textData,{ });
-					alert("uncompressed string - " + data32);
+					var data8 = pako.inflate(binData); // Returned as Uint8Array
 					
+					layer.data = new Uint32Array(data8.buffer); // Copy array packing each 4 bytes in a Uint32
 				}
+				map.layers.push(layer);
 				map.layers[layer.name] = layer;
 			}
 
