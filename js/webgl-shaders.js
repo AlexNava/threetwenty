@@ -122,7 +122,7 @@ var Rect2DTextureVertexShader = "\
 	uniform vec2 uTextureSelectionSize; /* width, heigth */\
 	uniform highp vec2 uTextureSize; /* width, heigth */\
 	uniform highp float uBorder;\
-	varying vec2 vTextureScreenCoord; /*normally contains either the texture coords, when specifying a border it's the screen coords*/\
+	varying vec2 vTextureScreenCoord; /*normally contains the texture coords, when specifying a border it's the screen coords*/\
 	\
 	/* Matrix expressed as columns */\
 	mat4 mvMatrix = mat4(\

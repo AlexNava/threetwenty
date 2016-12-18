@@ -83,6 +83,12 @@ var WebGlMgr = function () {
 		}
 	};
 
+	this.setViewport = function(minX, minY, maxX, maxY) {
+		// don't use for final output (fb null)
+		this.gl.viewport(minX, minY, maxX, maxY);
+		mat4.ortho(this.orthoProjMatrix, minX, maxX, minY, maxY, -1, 1);
+	};
+
 	this.initVertexBuffers = function() {
 		// Init triangle buffer
 		this.triangleVertexPosBuffer = this.gl.createBuffer();
@@ -301,11 +307,17 @@ var WebGlMgr = function () {
 
 	// Framebuffer utils ---------------
 	this.frameBuffers = [];
-	this.createFrameBuffer = function(fbName) {
+	this.createFrameBuffer = function(fbName, width, height) {
 		var tempFb = this.gl.createFramebuffer();
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, tempFb);
-		tempFb.width = this.xResolution;
-		tempFb.height = this.yResolution;
+		if ((width !== undefined) && (height !== undefined)) {
+			tempFb.width = width;
+			tempFb.height = height;
+		}
+		else {
+			tempFb.width = this.xResolution;
+			tempFb.height = this.yResolution;
+		}
 
 		// Texture for color
 		var tempTexture = this.gl.createTexture();
@@ -344,8 +356,14 @@ var WebGlMgr = function () {
 		if (fbName === null)
 		{
 			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, null);
+			this.gl.viewport(0, 0, this.mainCanvas.width, this.mainCanvas.height);
+			mat4.ortho(this.orthoProjMatrix, 0, this.xResolution, 0, this.yResolution, -1, 1);
 		}
-		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
+		else {
+			this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, this.frameBuffers[fbName]);
+			this.gl.viewport(0, 0, this.frameBuffers[fbName].width, this.frameBuffers[fbName].height);
+			mat4.ortho(this.orthoProjMatrix, 0, this.frameBuffers[fbName].width, 0, this.frameBuffers[fbName].height, -1, 1);
+		}
 	}
 
 	this.useTextureFromFrameBuffer = function(fbName, textureUnit) {

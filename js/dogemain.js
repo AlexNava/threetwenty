@@ -45,14 +45,14 @@ var displayFunc = function (elapsed) {
 
 	// draw scene on 1st FBO
 	WGL.useFrameBuffer('stoca');
-	WGL.gl.viewport(0, 0, WGL.xResolution, WGL.yResolution);
-	WGL.gl.enable(WGL.gl.DEPTH_TEST);
+	//WGL.gl.viewport(0, 0, WGL.xResolution, WGL.yResolution);
+	//WGL.gl.enable(WGL.gl.DEPTH_TEST);
 
 	//WGL.gl.clearColor(0.5, 0.5, 0.5, 1.0);
 	//WGL.gl.clear(WGL.gl.COLOR_BUFFER_BIT | WGL.gl.DEPTH_BUFFER_BIT);
 
 	// Instead of clearing color buffer, put the previous frame on it (blurred)
-	WGL.gl.disable(WGL.gl.DEPTH_TEST);
+	//WGL.gl.disable(WGL.gl.DEPTH_TEST);
 
 	var identityMv = mat4.create();
 
@@ -128,8 +128,8 @@ var displayFunc = function (elapsed) {
 
 	//----------------------------------------------------------------------------------------------
 	// draw textured quad from second FBO to screen
-	WGL.gl.bindFramebuffer(WGL.gl.FRAMEBUFFER, null);
-	WGL.gl.viewport(0, 0, WGL.mainCanvas.width, WGL.mainCanvas.height);
+	WGL.useFrameBuffer(null);
+	//WGL.gl.viewport(0, 0, WGL.mainCanvas.width, WGL.mainCanvas.height);
 	
 	if (WGL.shaders["CRT"] !== undefined) {
 		WGL.gl.useProgram(WGL.shaders["CRT"]); // check for loading if source is in external files!

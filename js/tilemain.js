@@ -159,7 +159,7 @@ var ui = new UiMgr(wgl, input, font);
 font.loadFontFiles("nokia", "fonts/nokia8xml.fnt", "fonts/nokia8xml_0.png");
 
 var tiler = new TileMgr(wgl);
-tiler.loadMap("desert", "tiled/deserti.tmx");
+tiler.loadMap("desert", "tiled/desertmix.tmx");
 	
 var app = new AppMgr();
 app.setGlMgr(wgl);
