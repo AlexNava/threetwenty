@@ -34,6 +34,7 @@ var Tileset = function() {
 	this.imageFile = "";
 	this.imageWidth = 0;
 	this.imageHeight = 0;
+	this.textureLoaded = false;
 }
 
 var Tile = function() {
@@ -89,14 +90,12 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				tileset.firstId =     parseInt(xmlTileSets[iTs].getAttribute("firstgid"));
 				tileset.tileCount =   parseInt(xmlTileSets[iTs].getAttribute("tilecount"));
 
-				tileset.textureName = "Tileset-texture-" + xmlTileSets[iTs].getAttribute("name");
-				
 				var xmlImage = xmlTileSets[iTs].getElementsByTagName("image")[0];
 				tileset.imageFile =   xmlFilePath + xmlImage.getAttribute("source");
 				tileset.imageWidth =  parseInt(xmlImage.getAttribute("width"));
 				tileset.imageHeight = parseInt(xmlImage.getAttribute("height"));
 
-				this.glMgr.loadTexture(tileset.textureName, tileset.imageFile);
+				// load textures in a second step
 				
 				// Create tiles
 				// Image coordinates go right, down while WebGL's go right, up
@@ -197,3 +196,15 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 	// do this for each tileset
 	//this.glMgr.loadTexture("Font-texture-" + alias, bitmapFile);
 };
+
+TileMgr.prototype.loadMapsTextures = function() {
+	for (var iMap = 0; iMap < this.maps.length; ++iMaps) {
+		for (var iTs = 0; iTs < this.maps[iMap]; ++iTs) {
+			if (this.maps[iMap].tilesets[iTs].textureLoaded === true)
+				continue;
+			this.maps[iMap].tilesets[iTs].textureName = "Tileset-texture-" + this.maps[iMap].tilesets[iTs].name;
+			this.glMgr.loadTexture(this.maps[iMap].tilesets[iTs].textureName, this.maps[iMap].tilesets[iTs].imageFile);
+			this.maps[iMap].tilesets[iTs].textureLoaded = true;
+		}
+	}
+}
