@@ -83,10 +83,10 @@ var WebGlMgr = function () {
 		}
 	};
 
-	this.setViewport = function(minX, minY, maxX, maxY) {
+	this.setViewport = function(minX, minY, width, height) {
 		// don't use for final output (fb null)
-		this.gl.viewport(minX, minY, maxX, maxY);
-		mat4.ortho(this.orthoProjMatrix, minX, maxX, minY, maxY, -1, 1);
+		this.gl.viewport(minX, minY, width, height);
+		mat4.ortho(this.orthoProjMatrix, 0, width, 0, height, -1, 1);
 	};
 
 	this.initVertexBuffers = function() {
@@ -307,6 +307,7 @@ var WebGlMgr = function () {
 
 	// Framebuffer utils ---------------
 	this.frameBuffers = [];
+
 	this.createFrameBuffer = function(fbName, width, height) {
 		var tempFb = this.gl.createFramebuffer();
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, tempFb);
@@ -327,7 +328,7 @@ var WebGlMgr = function () {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, tempTexture);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		// Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-powered-of-two sized
+		// Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-power-of-two sized
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
@@ -379,6 +380,7 @@ var WebGlMgr = function () {
 
 	// Texture utils -------------------
 	this.textures = [];
+
 	this.loadTexture = function(textureName, fileName) {
 		var tempTexture = this.gl.createTexture();
 		var tempImage = new Image();
