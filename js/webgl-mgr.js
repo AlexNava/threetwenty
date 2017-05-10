@@ -83,10 +83,15 @@ var WebGlMgr = function () {
 		}
 	};
 
-	this.setViewport = function(minX, minY, width, height) {
+	this.setViewport = function(minX, minY, width, height, absoluteCoordinates) {
 		// don't use for final output (fb null)
 		this.gl.viewport(minX, minY, width, height);
-		mat4.ortho(this.orthoProjMatrix, 0, width, 0, height, -1, 1);
+		if (absoluteCoordinates) {
+			mat4.ortho(this.orthoProjMatrix, minX, minX + width, minY, minY + height, -1, 1);
+		}
+		else {
+			mat4.ortho(this.orthoProjMatrix, 0, width, 0, height, -1, 1);
+		}
 	};
 
 	this.initVertexBuffers = function() {
