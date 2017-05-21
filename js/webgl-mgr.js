@@ -313,7 +313,7 @@ var WebGlMgr = function () {
 	// Framebuffer utils ---------------
 	this.frameBuffers = [];
 
-	this.createFrameBuffer = function(fbName, width, height) {
+	this.createFrameBuffer = function(fbName, width, height, repeatWrap) {
 		var tempFb = this.gl.createFramebuffer();
 		this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, tempFb);
 		if ((width !== undefined) && (height !== undefined)) {
@@ -324,6 +324,22 @@ var WebGlMgr = function () {
 			tempFb.width = this.xResolution;
 			tempFb.height = this.yResolution;
 		}
+		
+		if (repeatWrap) {
+			// Force power-of-2 size
+			var x = 1, y = 1;
+			while (x < tempFb.width)
+				x *= 2;
+			while (y < tempFb.height)
+				y *= 2;
+
+			console.log(
+				'framebuffer %s set to repeat wrap, size %dx%d -> %dx%d',
+				fbName, tempFb.width, tempFb.height, x, y);
+
+			tempFb.width = x;
+			tempFb.height = y;
+		}
 
 		// Texture for color
 		var tempTexture = this.gl.createTexture();
@@ -333,9 +349,15 @@ var WebGlMgr = function () {
 		this.gl.bindTexture(this.gl.TEXTURE_2D, tempTexture);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
 		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-		// Must specify CLAMP_TO_EDGE and no mipmap because the texture will be non-power-of-two sized
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+		// Must specify CLAMP_TO_EDGE and no mipmap if the texture is non-power-of-two sized
+		if (repeatWrap) {
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.REPEAT);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.REPEAT);
+		}
+		else {
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+			this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+		}
 
 		this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, tempFb.width, tempFb.height, 0, this.gl.RGBA, this.gl.UNSIGNED_BYTE, null);
 

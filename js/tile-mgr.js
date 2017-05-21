@@ -1,6 +1,7 @@
 var TileMgr = function (glMgrObject) {
 	this.glMgr = glMgrObject;
 	this.maps = [];
+	this.mapRenderer = new MapRenderer();
 };
 
 RenderOrder = {
@@ -95,8 +96,13 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				tileset.imageWidth =  parseInt(xmlImage.getAttribute("width"));
 				tileset.imageHeight = parseInt(xmlImage.getAttribute("height"));
 
+				if (tileset.margin != tileset.margin) // NaN if attribute is missing
+					tileset.margin =  0;
+				if (tileset.spacing != tileset.spacing) // NaN if attribute is missing
+					tileset.spacing = 0;
+
 				// load textures in a second step
-				
+
 				// Create tiles
 				// Image coordinates go right, down while WebGL's go right, up
 				var curX = tileset.margin;
@@ -156,8 +162,6 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 				map.layers[layer.name] = layer;
 			}
 
-
-			
 			this.maps[alias] = map;
 			/*
 			var font = xmlParse.getElementsByTagName("font")[0];
@@ -199,7 +203,7 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 
 TileMgr.prototype.loadMapsTextures = function() {
 	for (var iMap = 0; iMap < this.maps.length; ++iMaps) {
-		for (var iTs = 0; iTs < this.maps[iMap]; ++iTs) {
+		for (var iTs = 0; iTs < this.maps[iMap].tilesets.length; ++iTs) {
 			if (this.maps[iMap].tilesets[iTs].textureLoaded === true)
 				continue;
 			this.maps[iMap].tilesets[iTs].textureName = "Tileset-texture-" + this.maps[iMap].tilesets[iTs].name;
@@ -207,4 +211,15 @@ TileMgr.prototype.loadMapsTextures = function() {
 			this.maps[iMap].tilesets[iTs].textureLoaded = true;
 		}
 	}
+}
+
+var MapRenderer = function() {
+	// set viewport size
+	// set camera position
+	// draw layer(n) -> on current fbo, with set blending (?)
+	//   -> also updates each layer's texture, checking for changed camera position, tiles and animations
+	//   -> camera movement affected by parallax parameter
+	//   -> maybe leave animation for something else and make it update the tiles and sprites?
+	
+	
 }
