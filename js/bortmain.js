@@ -43,11 +43,11 @@ var displayFunc = function(elapsed) {
 	font.setAlignment("CENTER");
 	if (!document.fullscreenElement && !document.mozFullScreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement ) {  // current working methods
 		font.drawTextXy("Go fullscreen",
-		                160, 100, "nokia");
+		                Math.floor(wgl.xResolution / 2), Math.floor(wgl.yResolution / 2), "nokia");
 	}
 	else {
 		font.drawTextXy("Canvas is fullscreen",
-		                160, 100, "nokia");
+		                Math.floor(wgl.xResolution / 2), Math.floor(wgl.yResolution / 2), "nokia");
 	}
 
 	font.setAlignment("LEFT");
@@ -55,6 +55,8 @@ var displayFunc = function(elapsed) {
 	                0, 0, "nokia");
 	font.drawTextXy("Document body size: " + document.body.clientWidth + "x" + document.body.clientHeight,
 	                0, 10, "nokia");
+	font.drawTextXy("Render resolution: " + wgl.xResolution + "x" + wgl.yResolution,
+	                0, 20, "nokia");
 	
 	input.drawPointer();
 
@@ -69,6 +71,8 @@ var displayFunc = function(elapsed) {
 	wgl.useTextureFromFrameBuffer('macheoh');
 	wgl.useTexture('bezel', 1);
 	wgl.useTexture('glow', 2);
+
+	//wgl.shaders["CRT"] = undefined;
 
 	if (wgl.shaders["CRT"] !== undefined) {
 		wgl.gl.useProgram(wgl.shaders["CRT"]); // check for loading if source is in external files!        
