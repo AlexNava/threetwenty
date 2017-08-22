@@ -165,7 +165,8 @@ var displayFunc = function(elapsed) {
 
 	// draw scene on 1st FBO
 	wgl.useFrameBuffer('Pippa');
-	wgl.gl.viewport(0, 0, wgl.xResolution, wgl.yResolution);
+	//wgl.gl.viewport(0, 0, wgl.xResolution, wgl.yResolution);
+	wgl.setViewport(10, 10, 300, 220, true)
 	//wgl.gl.enable(wgl.gl.DEPTH_TEST);
 
 	wgl.gl.clearColor(0.5, 0.5, 0.5, 1.0);

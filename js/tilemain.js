@@ -35,10 +35,12 @@ initTextures = function() {
 
 initShaders = function() {
 	// CRT
-	wgl.loadShaderFiles("CRT", "shaders/crtVs.c", "shaders/crtFs.c", function() {
-		wgl.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
-		wgl.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
-	});
+	wgl.loadShaderFiles(
+		"CRT", "shaders/crtVs.c", "shaders/crtFs.c",
+		function() {
+			wgl.shaderAttributeArrays("CRT", ["aVertexPosition", "aTextureCoord"]);
+			wgl.shaderUniforms("CRT", ["uPMatrix", "uSampler", "uScanlines", "uBarrelDistortion", "uVignette", "uSampler", "uBezelSampler", "uGlowSampler", "uPhosphorSampler"]);
+		});
 };
 
 
@@ -47,8 +49,7 @@ var displayFunc = function(elapsed) {
 
 	// draw scene on 1st FBO
 	wgl.useFrameBuffer('Pippa');
-	wgl.gl.viewport(0, 0, wgl.xResolution, wgl.yResolution);
-	//wgl.gl.enable(wgl.gl.DEPTH_TEST);
+	wgl.setViewport(10, 10, 300, 220, true)
 
 	wgl.gl.clearColor(0.5, 0.5, 0.5, 1.0);
 	wgl.gl.clear(wgl.gl.COLOR_BUFFER_BIT | wgl.gl.DEPTH_BUFFER_BIT);
@@ -63,15 +64,17 @@ var displayFunc = function(elapsed) {
 	
 	for (var i = 0; i < input.touchPoints.length; i++) {
 		if ((input.touchPoints[i] !== undefined) && (input.touchPoints[i].pixelX !== undefined)) {
-			font.drawTextXy("touch " + i + ": " + input.touchPoints[i].pixelX + ", " + input.touchPoints[i].pixelY,
-			                10,
-			                140 + i * 9, "nokia");
+			font.drawTextXy(
+				"touch " + i + ": " + input.touchPoints[i].pixelX + ", " + input.touchPoints[i].pixelY,
+				10,
+				140 + i * 9, "nokia");
 		}
 	}
 
 	
-	font.drawTextXy(viewCenter.x + "," + viewCenter.y,
-	                10, 10, "nokia");
+	font.drawTextXy(
+		viewCenter.x + "," + viewCenter.y,
+	    10, 10, "nokia");
 
 	//ui.checkUI();
 	input.drawPointer();
