@@ -19,6 +19,7 @@ var Map = function() {
 	this.tileWidth = 0;
 	this.tileHeight = 0;
 	this.tilesets = [];
+	this.tiles = [];
 	this.layers = [];
 }
 
@@ -31,7 +32,6 @@ var Tileset = function() {
 	this.spacing = 0;
 	this.firstId = 0;
 	this.tileCount = 0;
-	this.tiles = [];
 	this.imageFile = "";
 	this.imageWidth = 0;
 	this.imageHeight = 0;
@@ -41,6 +41,7 @@ var Tileset = function() {
 var Tile = function() {
 	this.x = 0;
 	this.y = 0;
+	this.tileset = null;
 }
 
 var Layer = function() {
@@ -48,6 +49,7 @@ var Layer = function() {
 	this.width = 0;
 	this.height = 0;
 	this.data = [];
+	this.bufferValid = false;
 }
 
 TileMgr.prototype.loadMap = function (alias, xmlFile) {
@@ -117,7 +119,9 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 					var tile = new Tile();
 					tile.x = curX;
 					tile.y = tileset.imageHeight - (curY + tileset.tileHeight);
-					tileset.tiles[iTile] = tile;
+					tile.tileset = tileset;
+					map.tiles[iTile] = tile;
+					//tileset.tiles[iTile] = tile;
 					
 					// Position for next tile
 					++iTile;
@@ -202,7 +206,7 @@ TileMgr.prototype.loadMap = function (alias, xmlFile) {
 };
 
 TileMgr.prototype.loadMapsTextures = function() {
-	for (var iMap = 0; iMap < this.maps.length; ++iMaps) {
+	for (var iMap = 0; iMap < this.maps.length; ++iMap) {
 		for (var iTs = 0; iTs < this.maps[iMap].tilesets.length; ++iTs) {
 			if (this.maps[iMap].tilesets[iTs].textureLoaded === true)
 				continue;
