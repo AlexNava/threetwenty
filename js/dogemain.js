@@ -152,6 +152,13 @@ var displayFunc = function (elapsed) {
 		// Draw stuff
 		WGL.fullscreenRectangle("CRT");
 	}
+	else {
+		WGL.gl.useProgram(WGL.shaders["texture"]);        
+		WGL.gl.uniformMatrix4fv(WGL.shaders["texture"].uPMatrix, false, WGL.orthoProjMatrix);
+
+		// Draw stuff
+		WGL.fullscreenRectangle("texture");
+	}
 };
 
 var animateFun = function (elapsed) {
