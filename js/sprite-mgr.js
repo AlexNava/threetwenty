@@ -62,6 +62,7 @@ SpriteMgr.prototype.loadSpriteFiles = function (spriteAlias, animAlias, jsonFile
                 tempAnim.frames[i] = tempFrame;
                 ++i;
             }
+            tempAnim.framesCount = i;
 			
 			this.glMgr.loadTexture("Sprite-texture-" + spriteAlias + "-" + animAlias, bitmapFile);
 			
@@ -84,9 +85,15 @@ SpriteMgr.prototype.setColor = function(r, g, b, a) {
 	this.currentColor = [r, g, b, a];
 }
 
-SpriteMgr.prototype.drawSprite = function (x, y, spriteAlias, animAlias, frame) {
+SpriteMgr.prototype.drawSprite = function (x, y, spriteAlias, animAlias, frameIdx) {
 	var currentAnim = this.sprites[spriteAlias].animations[animAlias]; // aka texture
 	if (currentAnim === undefined) {
+		return;
+	}
+    if (currentAnim.frames === undefined) {
+		return;
+	}
+    if (currentAnim.frames[frameIdx] === undefined) {
 		return;
 	}
 
@@ -96,8 +103,8 @@ SpriteMgr.prototype.drawSprite = function (x, y, spriteAlias, animAlias, frame) 
 	this.glMgr.useTexture("Sprite-texture-" + spriteAlias + "-" + animAlias);
 
     this.glMgr.texturedRect2D(x, y,
-        this.currentScale * currentAnim.frames[frame].w, this.currentScale * currentAnim.frames[frame].h,
-        currentAnim.frames[frame].x, currentAnim.frames[frame].y,
-        currentAnim.frames[frame].w, currentAnim.frames[frame].h,);
+        this.currentScale * currentAnim.frames[frameIdx].w, this.currentScale * currentAnim.frames[frameIdx].h,
+        currentAnim.frames[frameIdx].x, currentAnim.frames[frameIdx].y,
+        currentAnim.frames[frameIdx].w, currentAnim.frames[frameIdx].h,);
 
 }
