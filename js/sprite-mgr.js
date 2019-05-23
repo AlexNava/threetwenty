@@ -59,6 +59,7 @@ SpriteMgr.prototype.loadSpriteFiles = function (spriteAlias, animAlias, jsonFile
                 tempFrame.w = jsonParse.frames[bitmapName + i + bitmapExt].frame.w;
                 tempFrame.h = jsonParse.frames[bitmapName + i + bitmapExt].frame.h;
                 
+                tempFrame.y = jsonParse.meta.size.h - (tempFrame.y + tempFrame.h); // reverse y coordinate
                 tempAnim.frames[i] = tempFrame;
                 ++i;
             }
@@ -105,6 +106,6 @@ SpriteMgr.prototype.drawSprite = function (x, y, spriteAlias, animAlias, frameId
     this.glMgr.texturedRect2D(x, y,
         this.currentScale * currentAnim.frames[frameIdx].w, this.currentScale * currentAnim.frames[frameIdx].h,
         currentAnim.frames[frameIdx].x, currentAnim.frames[frameIdx].y,
-        currentAnim.frames[frameIdx].w, currentAnim.frames[frameIdx].h,);
+        currentAnim.frames[frameIdx].w, currentAnim.frames[frameIdx].h);
 
 }
