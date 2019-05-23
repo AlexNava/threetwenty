@@ -39,16 +39,22 @@ void main()
 
 	// Scanlines
 	float ramp = fract(distorted.t * float(uScanlines) + 0.5) - 0.5;
-	float scanlineNear = 2.0 * abs(ramp);
-	bool evenLine = (ramp > 0.0);
+	//  Ramp
+	//  .5| *   *   *   *   
+	//    |/|  /|  /|  /|  /
+	//   0+-|-/-|-/-|-/-|-/---> Y
+	//    | |/  |/  |/  |/  
+	// -.5| *   *   *   *   
+
+	//bool evenLine = (ramp > 0.0);
 	float discretizedTextureT = floor(distorted.t * float(uScanlines)) / float(uScanlines);
 
+	float scanlineNear = 2.0 * abs(ramp);
 	scanlineNear = 0.5 + scanlineNear;
 	if (scanlineNear > 1.0)
 	{
 		scanlineNear = 1.0;
 	}
-	scanlineNear *= (4.0 / 7.0);
 
 	vec4 fragmentColor;
 	fragmentColor = texture2D(uSampler, vec2(distorted.s, discretizedTextureT));
@@ -56,21 +62,21 @@ void main()
 
 	// Vignette
 	fragmentColor.rgb *= (1.0 - uVignette * sqDist);
-
-	if (fragmentColor.r > 0.5)
-		fragmentColor.r = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.r - 0.5));
+	const float threshold = 0.875; // this should be equal to the mean value of scanlineNear
+	if (fragmentColor.r > threshold)
+		fragmentColor.r = mix(scanlineNear, 1.0, (fragmentColor.r - threshold) / (1.0 - threshold));
 	else
-		fragmentColor.r = mix(0.0, scanlineNear, 2.0 * fragmentColor.r);
+		fragmentColor.r = mix(0.0, scanlineNear, fragmentColor.r / threshold);
 	
-	if (fragmentColor.g > 0.5)
-		fragmentColor.g = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.g - 0.5));
+	if (fragmentColor.g > threshold)
+		fragmentColor.g = mix(scanlineNear, 1.0, (fragmentColor.g - threshold) / (1.0 - threshold));
 	else
-		fragmentColor.g = mix(0.0, scanlineNear, 2.0 * fragmentColor.g);
+		fragmentColor.g = mix(0.0, scanlineNear, fragmentColor.g / threshold);
 	
-	if (fragmentColor.b > 0.5)
-		fragmentColor.b = mix(scanlineNear, 1.0, 2.0 * (fragmentColor.b - 0.5));
+	if (fragmentColor.b > threshold)
+		fragmentColor.b = mix(scanlineNear, 1.0, (fragmentColor.b - threshold) / (1.0 - threshold));
 	else
-		fragmentColor.b = mix(0.0, scanlineNear, 2.0 * fragmentColor.b);
+		fragmentColor.b = mix(0.0, scanlineNear, fragmentColor.b / threshold);
 
 	//fragmentColor = texture2D(uSampler, distorted);
 	//fragmentColor.rgb *= texture2D(uPhosphorSampler, distorted).rgb * vec3(1.5, 1.5, 1.5);

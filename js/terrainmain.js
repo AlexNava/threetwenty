@@ -50,10 +50,10 @@ var startFunc = function () {
 
 	var fullScreenCtrl = new UiControl();
 	fullScreenCtrl.type = ControlType.AREA;
-	fullScreenCtrl.x = 0;
-	fullScreenCtrl.y = 40;
+	fullScreenCtrl.x = 10;
+	fullScreenCtrl.y = 50;
 	fullScreenCtrl.width = 60;
-	fullScreenCtrl.height = 10;
+	fullScreenCtrl.height = 12;
 	fullScreenCtrl.onClick = wgl.goFullscreen;
 	fullScreenCtrl.onDrag = null;
 	fullScreenCtrl.immediate = true; // necessary for switching fullscreen
@@ -69,6 +69,8 @@ initTextures = function() {
 	wgl.loadTexture("bezel", "shaders/crt_images/bezel.png");
 	wgl.loadTexture("glow", "shaders/crt_images/glow.png");
 	wgl.loadTexture("phosphor", "shaders/crt_images/tv-coarse-1536.png");
+	wgl.loadTexture("button", "images/BasicButton.png");
+	wgl.loadTexture("roundButton", "images/RoundButton.png");
 
 	input.setPointer("mouse", 0, 0, 8, 8, 0, 7);
 };
@@ -220,18 +222,26 @@ var displayFunc = function(elapsed) {
 
 	
 	font.drawTextXy(wgl.viewCenter.x + "," + wgl.viewCenter.y,
-	                0, 0, "nokia");
+	                10, 10, "nokia");
 	font.drawTextXy(input.pointer.pixelX + "," + input.pointer.pixelY,
-	                0, 10, "nokia");
+	                10, 20, "nokia");
 	font.drawTextXy("Status: " + input.pointer.status,
-	                0, 20, "nokia");
+	                10, 30, "nokia");
 	
 	font.drawTextXy("puppa = " + puppa,
-	                0, 30, "nokia");
+	                10, 40, "nokia");
+
+	wgl.useTexture("button");
+	wgl.texturedRect2D(10, 50, 60, 12,
+	                   0, 0, 8, 8, 2);
 
 	font.drawTextXy("Fullscreen",
-	                0, 40, "nokia");
+	                10, 50, "nokia");
 	
+	wgl.useTexture("roundButton");
+	wgl.texturedRect2D(8, 10, 240, 60,
+	                   0, 0, 16, 16, 8);
+
 	//ui.checkUI();
 	input.drawPointer();
 	

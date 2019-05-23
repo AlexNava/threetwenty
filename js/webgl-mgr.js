@@ -202,7 +202,7 @@ var WebGlMgr = function () {
 		// Init textured aligned rectangle shader
 		this.loadShaderSources("rect2d", Rect2DTextureVertexShader, BasicTextureFragmentShader);
 		this.shaderAttributeArrays("rect2d", ["aVertexPosition", "aTextureCoord"]);
-		this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler", "uBaseColor"]);
+		this.shaderUniforms("rect2d", ["uPMatrix", "uCornerPosition", "uSize", "uTextureCornerPosition", "uTextureSelectionSize", "uTextureSize", "uSampler", "uBaseColor", "uBorder"]);
 
 		var identityMv = mat4.create();
 
@@ -455,8 +455,11 @@ var WebGlMgr = function () {
 	};
 
 	this.texturedRect2D = function(bottomLeftX, bottomLeftY, width, height,
-								   bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight) {
+	                               bottomLeftTextureX, bottomLeftTextureY, textureSelectionWidth, textureSelectionHeight, border) {
 		var shad = this.shaders["rect2d"];
+		if (border === undefined) {
+			border = 0.0;
+		}
 		
 		if (this.lastFunction !== this.drawFunctions.RECT2D)
 		{
@@ -476,10 +479,12 @@ var WebGlMgr = function () {
 		this.gl.uniform2fv(shad.uSize, [width, height]);
 		this.gl.uniform2fv(shad.uTextureCornerPosition, [bottomLeftTextureX, bottomLeftTextureY]);
 		this.gl.uniform2fv(shad.uTextureSelectionSize, [textureSelectionWidth, textureSelectionHeight]);
-		
-		if (this.textureInUse !== undefined)
+		this.gl.uniform1f(shad.uBorder, border);
+
+		if (this.textureInUse !== undefined) {
 			this.gl.uniform2fv(shad.uTextureSize, [this.textureInUse.width, this.textureInUse.height]);
-	
+		}
+
 		this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.rectVertexPosBuffer.numItems);
 
 		this.lastFunction = this.drawFunctions.RECT2D;

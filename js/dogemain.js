@@ -21,6 +21,7 @@ var startFunc = function () {
 
 initTextures = function() {
 	WGL.loadTexture("snoop", "images/SnoopDogeTransp.png");
+	//WGL.loadTexture("snoop", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAoCAIAAAADnC86AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAI7SURBVFhH7ZTNK0RRFMBnNSurWVnYkJLYTEr2yoqakiyUUpg/gMKUhYUoVtJY+9wpTBMGo8xsxWRII1FkKFOTnYU45p457rtf3nvjo+TXabrnvDvn9z7uvZ7EL/FXxOnj6XzWnzkNYa5HKz4Zn8z6m3IV1RAwgBQvGHnO+V6fPC95L+Z6RDHv4+OxshZnGAErC8z1fMw4mg0rlSwue/pwnhE34oe6BkF21dGVjMfxsj3ciEvxESWJba4jJW7EsHyYGAbu3LCX3IjPBofpod252V5yLAZ4Nwv7Oxgga/Y6gCU94q3JbhZ27oDEmBtRTNK5Pz1D4MAqSUwId/DpGXJ1HgSrnfcM2Lq77+Bf/GP8CfF07LB85cazcE8BaWgzhZetmMQTu3ONkS4IGGBJg6yk8C5mlW61OByfB1/VeiuFQQ/WsqU7wceH0q0Qg7V+o523sqhZV58MvuVbXhNYy7B6MJKmouwWxYK1JdpPYwjlQ1N3UhIGtyj2b3SSpnd7lBXhWVlF+dDUGnMrghursli2AkOxKapjiYP6Yi7Bu7EkiOE9FwVt8AsLamxnhl0q1t2IAXmORVx8z+9WCraeKcWpHHJTGXmORUzdhaBvDCGvL7mpAOw3eY5aDON4Yr97a4Sl8L0N64ua6g4pfr9hSRBTd8w5DOsL1iprqjwoBqIpsvL7zSJm3fn1zKMT84vWEM2rF/iHAhaxGZ0YsOPeO0ji7AIOxIYPAZjd8qHmQGz+EE5xIP5a/sU/RCLxBgkjEN9Gv6KxAAAAAElFTkSuQmCC");
 	WGL.loadTexture("code", "images/code64.png");
 	WGL.loadTexture("bezel", "shaders/crt_images/bezel.png");
 	WGL.loadTexture("glow", "shaders/crt_images/glow.png");
@@ -151,6 +152,13 @@ var displayFunc = function (elapsed) {
 
 		// Draw stuff
 		WGL.fullscreenRectangle("CRT");
+	}
+	else {
+		WGL.gl.useProgram(WGL.shaders["texture"]);        
+		WGL.gl.uniformMatrix4fv(WGL.shaders["texture"].uPMatrix, false, WGL.orthoProjMatrix);
+
+		// Draw stuff
+		WGL.fullscreenRectangle("texture");
 	}
 };
 

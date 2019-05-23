@@ -32,28 +32,57 @@ var BasicTextureVertexShader = "\
 	\
 	uniform mat4 uMVMatrix;\
 	uniform mat4 uPMatrix;\
-	varying vec2 vTextureCoord;\
+	varying vec2 vTextureScreenCoord;\
 	\
 	void main()\
 	{\
 		gl_Position = uPMatrix * uMVMatrix * aVertexPosition;\
-		vTextureCoord = aTextureCoord;\
+		vTextureScreenCoord = aTextureCoord;\
 	}";
 
 // Simple fragment shader with texture support
 var BasicTextureFragmentShader = "\
 	precision mediump float;\
 	\
-	varying vec2 vTextureCoord;\
+	varying vec2 vTextureScreenCoord;\
+	uniform highp float uBorder;\
 	uniform sampler2D uSampler;\
 	uniform vec4 uBaseColor;\
+	uniform highp vec2 uTextureSize; /* width, heigth. highp necessary in fragment shader (in vertex it is implicitly highp) */\
+	uniform highp vec2 uSize; /* width, heigth */\
 	\
 	void main()\
 	{\
 		vec4 fragmentColor;\
 		\
-		fragmentColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));\
-		gl_FragColor = fragmentColor * uBaseColor;\
+		if (uBorder <= 0.0) {\
+			fragmentColor = texture2D(uSampler, vTextureScreenCoord);\
+			gl_FragColor = fragmentColor * uBaseColor;\
+		}\
+		else {\
+			vec2 textureCoord;\
+			if (vTextureScreenCoord.x < uBorder) {\
+				textureCoord.x = vTextureScreenCoord.x;\
+			}\
+			else if ((vTextureScreenCoord.x >= uBorder) && (vTextureScreenCoord.x <= uSize.x - uBorder)) {\
+				textureCoord.x = uBorder + (uTextureSize.x - 2.0 * uBorder) * (vTextureScreenCoord.x - uBorder) / (uSize.x - 2.0 * uBorder);\
+			}\
+			else {\
+				textureCoord.x = uTextureSize.x + vTextureScreenCoord.x - uSize.x ;\
+			}\
+			if (vTextureScreenCoord.y < uBorder) {\
+				textureCoord.y = vTextureScreenCoord.y;\
+			}\
+			else if ((vTextureScreenCoord.y >= uBorder) && (vTextureScreenCoord.y <= uSize.y - uBorder)) {\
+				textureCoord.y = uBorder + (uTextureSize.y - 2.0 * uBorder) * (vTextureScreenCoord.y - uBorder) / (uSize.y - 2.0 * uBorder);\
+			}\
+			else {\
+				textureCoord.y = uTextureSize.y + vTextureScreenCoord.y - uSize.y;\
+			}\
+			textureCoord /= uTextureSize;\
+			fragmentColor = texture2D(uSampler, vec2(textureCoord.x, textureCoord.y));\
+			gl_FragColor = fragmentColor * uBaseColor;\
+		}\
 	}";
 
 // Adaptation for centered quads (or any other geometry)
@@ -65,7 +94,7 @@ var Quad2DTextureVertexShader = "\
 	uniform vec2 uCenterPosition;\
 	uniform float uScale;\
 	uniform float uRotation;\
-	varying vec2 vTextureCoord;\
+	varying vec2 vTextureScreenCoord;\
 	\
 	/* Matrix expressed as columns */\
 	mat4 mvMatrix = mat4(\
@@ -78,7 +107,7 @@ var Quad2DTextureVertexShader = "\
 	void main()\
 	{\
 		gl_Position = uPMatrix * mvMatrix * aVertexPosition;\
-		vTextureCoord = aTextureCoord;\
+		vTextureScreenCoord = aTextureCoord;\
 	}";
 
 // Adaptation for aligned rectangles (like text...)
@@ -88,11 +117,12 @@ var Rect2DTextureVertexShader = "\
 	\
 	uniform mat4 uPMatrix;\
 	uniform vec2 uCornerPosition; /* bottom left */\
-	uniform vec2 uSize; /* width, heigth */\
+	uniform highp vec2 uSize; /* width, heigth */\
 	uniform vec2 uTextureCornerPosition; /* bottom left */\
 	uniform vec2 uTextureSelectionSize; /* width, heigth */\
-	uniform vec2 uTextureSize; /* width, heigth */\
-	varying vec2 vTextureCoord;\
+	uniform highp vec2 uTextureSize; /* width, heigth */\
+	uniform highp float uBorder;\
+	varying vec2 vTextureScreenCoord; /*normally contains either the texture coords, when specifying a border it's the screen coords*/\
 	\
 	/* Matrix expressed as columns */\
 	mat4 mvMatrix = mat4(\
@@ -104,8 +134,16 @@ var Rect2DTextureVertexShader = "\
 	\
 	void main()\
 	{\
-		gl_Position = uPMatrix * mvMatrix * aVertexPosition;\
-		vec2 normalizedTextureCorner = uTextureCornerPosition / uTextureSize;\
-		vec2 textureScale = uTextureSelectionSize / uTextureSize;\
-		vTextureCoord = normalizedTextureCorner + aTextureCoord * textureScale;\
+		vec4 finalPos = mvMatrix * aVertexPosition;\
+		gl_Position = uPMatrix * finalPos;\
+		if (uBorder > 0.0)\
+		{\
+			vTextureScreenCoord = finalPos.xy - uCornerPosition.xy;\
+		}\
+		else\
+		{\
+			vec2 normalizedTextureCorner = uTextureCornerPosition / uTextureSize;\
+			vec2 textureScale = uTextureSelectionSize / uTextureSize;\
+			vTextureScreenCoord = normalizedTextureCorner + aTextureCoord * textureScale;\
+		}\
 	}";
